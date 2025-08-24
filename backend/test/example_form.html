@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FormHub Test Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .response-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .honeypot {
+            display: none !important;
+        }
+        .api-key-input {
+            background: #f8f9fa;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>FormHub Test Form</h1>
+        <p>This is a test form to demonstrate FormHub's form submission capabilities.</p>
+        
+        <form id="testForm">
+            <div class="form-group">
+                <label for="access_key">API Access Key *</label>
+                <input type="text" id="access_key" name="access_key" required
+                       class="api-key-input" placeholder="Enter your FormHub API key">
+            </div>
+            
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required placeholder="Your full name">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+            </div>
+            
+            <div class="form-group">
+                <label for="company">Company</label>
+                <input type="text" id="company" name="company" placeholder="Your company name">
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Subject *</label>
+                <input type="text" id="subject" name="subject" required placeholder="What is this about?">
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message *</label>
+                <textarea id="message" name="message" required 
+                         placeholder="Tell us more about your inquiry..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+            
+            <!-- Honeypot field for spam protection -->
+            <input type="text" name="honeypot" class="honeypot" tabindex="-1">
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Send Message
+            </button>
+        </form>
+        
+        <div id="responseMessage" class="response-message"></div>
+    </div>
+
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const responseMessage = document.getElementById('responseMessage');
+            
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            
+            // Hide previous response
+            responseMessage.style.display = 'none';
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const jsonData = {};
+            
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+            
+            try {
+                // Submit to FormHub API
+                const response = await fetch('http://localhost:8080/api/v1/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+                
+                const result = await response.json();
+                
+                // Display response
+                responseMessage.style.display = 'block';
+                
+                if (result.success) {
+                    responseMessage.className = 'response-message success';
+                    responseMessage.innerHTML = `
+                        <h3>✅ Success!</h3>
+                        <p>${result.message}</p>
+                        <small>Status Code: ${result.statusCode || response.status}</small>
+                    `;
+                    
+                    // Reset form on success
+                    this.reset();
+                    
+                    // Redirect if specified
+                    if (result.redirect_url) {
+                        setTimeout(() => {
+                            window.location.href = result.redirect_url;
+                        }, 2000);
+                    }
+                } else {
+                    responseMessage.className = 'response-message error';
+                    responseMessage.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <p>${result.message}</p>
+                        <small>Status Code: ${result.statusCode || response.status}</small>
+                    `;
+                }
+                
+            } catch (error) {
+                responseMessage.style.display = 'block';
+                responseMessage.className = 'response-message error';
+                responseMessage.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>Failed to submit form: ${error.message}</p>
+                    <p>Please check if the FormHub server is running on localhost:8080</p>
+                `;
+            }
+            
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+        });
+        
+        // Auto-populate API key from localStorage for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedApiKey = localStorage.getItem('formhub_test_api_key');
+            if (savedApiKey) {
+                document.getElementById('access_key').value = savedApiKey;
+            }
+            
+            // Save API key to localStorage when changed
+            document.getElementById('access_key').addEventListener('change', function() {
+                localStorage.setItem('formhub_test_api_key', this.value);
+            });
+        });
+    </script>
+</body>
+</html>
