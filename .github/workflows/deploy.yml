@@ -1,0 +1,213 @@
+name: FormHub Service CI/CD
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: formhub-api
+  SERVICE_PORT: 9000
+  DEPLOY_PATH: /opt/mejona/formhub
+
+jobs:
+  build:
+    name: Build FormHub Service
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    - name: Build
+      run: |
+        echo "Building FormHub API Service..."
+        cd backend
+        go mod download
+        go mod verify
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main.go
+        ls -la ${{ env.SERVICE_NAME }}
+        echo "Build completed successfully"
+
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    - name: Build Production Binary
+      run: |
+        cd backend
+        go mod download
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main.go
+        chmod +x ${{ env.SERVICE_NAME }}
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+    - name: Create Environment File
+      run: |
+        cat > .env << 'EOF'
+        ENVIRONMENT=production
+        PORT=9000
+        DATABASE_URL=mysql://root:${{ secrets.DB_PASSWORD }}@localhost:3306/formhub?parseTime=true
+        REDIS_URL=
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        ALLOWED_ORIGINS=http://${{ secrets.EC2_HOST }}:9000,https://formhub.mejona.in,https://api.formhub.mejona.in
+        SMTP_HOST=smtp.gmail.com
+        SMTP_PORT=587
+        SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
+        SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+        FROM_EMAIL=noreply@formhub.com
+        FROM_NAME=FormHub by Mejona Technology
+        EOF
+    - name: Deploy to Server
+      run: |
+        echo "Deploying FormHub to AWS EC2..."
+        scp -i ~/.ssh/id_rsa backend/${{ env.SERVICE_NAME }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
+        scp -i ~/.ssh/id_rsa .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
+        scp -i ~/.ssh/id_rsa backend/migrations/001_initial_schema.sql ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
+        
+        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'DEPLOY'
+          # Create deploy directory
+          sudo mkdir -p ${{ env.DEPLOY_PATH }}
+          cd ${{ env.DEPLOY_PATH }}
+          
+          # Stop existing service
+          sudo systemctl stop ${{ env.SERVICE_NAME }} 2>/dev/null || true
+          
+          # Copy new files
+          sudo cp /tmp/${{ env.SERVICE_NAME }} .
+          sudo cp /tmp/.env .
+          sudo chown ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} ${{ env.SERVICE_NAME }} .env
+          sudo chmod +x ${{ env.SERVICE_NAME }}
+          
+          # Setup database if not exists
+          mysql -u root -p${{ secrets.DB_PASSWORD }} -e "CREATE DATABASE IF NOT EXISTS formhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" 2>/dev/null || echo "Database setup attempted"
+          
+          # Run migrations (convert PostgreSQL to MySQL)
+          mysql -u root -p${{ secrets.DB_PASSWORD }} formhub << 'SQL'
+          -- Users table
+          CREATE TABLE IF NOT EXISTS users (
+              id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+              email VARCHAR(255) UNIQUE NOT NULL,
+              password_hash VARCHAR(255) NOT NULL,
+              first_name VARCHAR(100) NOT NULL,
+              last_name VARCHAR(100) NOT NULL,
+              company VARCHAR(255),
+              plan_type VARCHAR(50) NOT NULL DEFAULT 'free',
+              is_active BOOLEAN NOT NULL DEFAULT true,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              INDEX idx_users_email (email)
+          );
+
+          -- API Keys table  
+          CREATE TABLE IF NOT EXISTS api_keys (
+              id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+              user_id VARCHAR(36) NOT NULL,
+              name VARCHAR(255) NOT NULL,
+              key_hash VARCHAR(255) UNIQUE NOT NULL,
+              permissions TEXT NOT NULL DEFAULT 'form_submit',
+              rate_limit INTEGER NOT NULL DEFAULT 1000,
+              is_active BOOLEAN NOT NULL DEFAULT true,
+              last_used_at TIMESTAMP NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+              INDEX idx_api_keys_user_id (user_id),
+              INDEX idx_api_keys_key_hash (key_hash)
+          );
+
+          -- Forms table
+          CREATE TABLE IF NOT EXISTS forms (
+              id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+              user_id VARCHAR(36) NOT NULL,
+              name VARCHAR(255) NOT NULL,
+              description TEXT,
+              target_email VARCHAR(255) NOT NULL,
+              cc_emails TEXT,
+              subject VARCHAR(500),
+              success_message TEXT,
+              redirect_url TEXT,
+              webhook_url TEXT,
+              spam_protection BOOLEAN NOT NULL DEFAULT false,
+              file_uploads BOOLEAN NOT NULL DEFAULT false,
+              max_file_size BIGINT NOT NULL DEFAULT 5242880,
+              is_active BOOLEAN NOT NULL DEFAULT true,
+              submission_count BIGINT NOT NULL DEFAULT 0,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+              INDEX idx_forms_user_id (user_id)
+          );
+
+          -- Submissions table
+          CREATE TABLE IF NOT EXISTS submissions (
+              id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+              form_id VARCHAR(36) NOT NULL,
+              data JSON NOT NULL,
+              ip_address VARCHAR(45),
+              user_agent TEXT,
+              referrer TEXT,
+              is_spam BOOLEAN NOT NULL DEFAULT false,
+              spam_score DECIMAL(3,2) NOT NULL DEFAULT 0.0,
+              email_sent BOOLEAN NOT NULL DEFAULT false,
+              webhook_sent BOOLEAN NOT NULL DEFAULT false,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE,
+              INDEX idx_submissions_form_id (form_id),
+              INDEX idx_submissions_created_at (created_at)
+          );
+          SQL
+          
+          # Create systemd service
+          sudo tee /etc/systemd/system/${{ env.SERVICE_NAME }}.service > /dev/null << 'SERVICE'
+        [Unit]
+        Description=FormHub API Service
+        After=network.target mysql.service
+        
+        [Service]
+        Type=simple
+        User=${{ secrets.EC2_USER }}
+        Group=${{ secrets.EC2_USER }}
+        WorkingDirectory=${{ env.DEPLOY_PATH }}
+        ExecStart=${{ env.DEPLOY_PATH }}/${{ env.SERVICE_NAME }}
+        Restart=always
+        RestartSec=10
+        Environment=GIN_MODE=release
+        
+        [Install]
+        WantedBy=multi-user.target
+        SERVICE
+          
+          # Start service
+          sudo systemctl daemon-reload
+          sudo systemctl enable ${{ env.SERVICE_NAME }}
+          sudo systemctl start ${{ env.SERVICE_NAME }}
+          sleep 10
+          sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
+        DEPLOY
+    - name: Verify Deployment
+      run: |
+        echo "Verifying FormHub deployment..."
+        sleep 15
+        for i in {1..5}; do
+          if curl -f http://${{ secrets.EC2_HOST }}:${{ env.SERVICE_PORT }}/health; then
+            echo "FormHub health check passed!"
+            echo "FormHub is live at: http://${{ secrets.EC2_HOST }}:${{ env.SERVICE_PORT }}"
+            break
+          else
+            echo "Attempt $i failed, retrying..."
+            sleep 10
+          fi
+        done
+        echo "FormHub deployment verification completed"
