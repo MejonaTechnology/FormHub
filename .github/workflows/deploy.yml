@@ -9,6 +9,8 @@ env:
   SERVICE_NAME: formhub-api
   SERVICE_PORT: 9000
   DEPLOY_PATH: /opt/mejona/formhub
+  FRONTEND_PORT: 3000
+  FRONTEND_PATH: /opt/mejona/formhub-frontend
 
 jobs:
   build:
@@ -30,13 +32,49 @@ jobs:
         ls -la ${{ env.SERVICE_NAME }}
         echo "Build completed successfully"
 
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+    - name: Install Dependencies
+      run: |
+        cd frontend
+        npm ci
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+        echo "Frontend build completed successfully"
+    - name: Upload Frontend Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend/.next/
+        retention-days: 1
+
   deploy:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, build-frontend]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
     - uses: actions/checkout@v4
+    - name: Download Frontend Build
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend/.next/
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
@@ -47,6 +85,11 @@ jobs:
         go mod download
         CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main.go
         chmod +x ${{ env.SERVICE_NAME }}
+    - name: Prepare Frontend Files
+      run: |
+        cd frontend
+        npm ci --only=production
+        tar -czf ../frontend-dist.tar.gz .next/ node_modules/ package*.json next.config.js
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
@@ -75,14 +118,17 @@ jobs:
         scp -i ~/.ssh/id_rsa backend/${{ env.SERVICE_NAME }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
         scp -i ~/.ssh/id_rsa .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
         scp -i ~/.ssh/id_rsa backend/migrations/001_initial_schema.sql ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
+        scp -i ~/.ssh/id_rsa frontend-dist.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
         
         ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'DEPLOY'
-          # Create deploy directory
+          # Create deploy directories
           sudo mkdir -p ${{ env.DEPLOY_PATH }}
+          sudo mkdir -p ${{ env.FRONTEND_PATH }}
           cd ${{ env.DEPLOY_PATH }}
           
-          # Stop existing service
+          # Stop existing services
           sudo systemctl stop ${{ env.SERVICE_NAME }} 2>/dev/null || true
+          sudo systemctl stop formhub-frontend 2>/dev/null || true
           
           # Copy new files
           sudo cp /tmp/${{ env.SERVICE_NAME }} .
@@ -98,6 +144,48 @@ jobs:
           mysql -u root -p${{ secrets.DB_PASSWORD }} formhub -e "CREATE TABLE IF NOT EXISTS api_keys (id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()), user_id VARCHAR(36) NOT NULL, name VARCHAR(255) NOT NULL, key_hash VARCHAR(255) UNIQUE NOT NULL, permissions TEXT NOT NULL DEFAULT 'form_submit', rate_limit INTEGER NOT NULL DEFAULT 1000, is_active BOOLEAN NOT NULL DEFAULT true, last_used_at TIMESTAMP NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_api_keys_user_id (user_id), INDEX idx_api_keys_key_hash (key_hash));"
           mysql -u root -p${{ secrets.DB_PASSWORD }} formhub -e "CREATE TABLE IF NOT EXISTS forms (id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()), user_id VARCHAR(36) NOT NULL, name VARCHAR(255) NOT NULL, description TEXT, target_email VARCHAR(255) NOT NULL, cc_emails TEXT, subject VARCHAR(500), success_message TEXT, redirect_url TEXT, webhook_url TEXT, spam_protection BOOLEAN NOT NULL DEFAULT false, file_uploads BOOLEAN NOT NULL DEFAULT false, max_file_size BIGINT NOT NULL DEFAULT 5242880, is_active BOOLEAN NOT NULL DEFAULT true, submission_count BIGINT NOT NULL DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_forms_user_id (user_id));"
           mysql -u root -p${{ secrets.DB_PASSWORD }} formhub -e "CREATE TABLE IF NOT EXISTS submissions (id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()), form_id VARCHAR(36) NOT NULL, data JSON NOT NULL, ip_address VARCHAR(45), user_agent TEXT, referrer TEXT, is_spam BOOLEAN NOT NULL DEFAULT false, spam_score DECIMAL(3,2) NOT NULL DEFAULT 0.0, email_sent BOOLEAN NOT NULL DEFAULT false, webhook_sent BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE, INDEX idx_submissions_form_id (form_id), INDEX idx_submissions_created_at (created_at));"
+          
+          # Deploy Frontend
+          cd ${{ env.FRONTEND_PATH }}
+          sudo cp /tmp/frontend-dist.tar.gz .
+          sudo tar -xzf frontend-dist.tar.gz
+          sudo chown -R ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} .
+          
+          # Create frontend environment file
+          sudo tee .env.local > /dev/null << 'FRONTEND_ENV'
+        NEXT_PUBLIC_API_URL=https://formhub.mejona.in/api/v1
+        NEXT_PUBLIC_FORMHUB_URL=https://formhub.mejona.in
+        FRONTEND_ENV
+          
+          # Install Node.js if not present (Amazon Linux 2023)
+          if ! command -v node &> /dev/null; then
+            curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+            sudo yum install -y nodejs
+          fi
+          
+          # Create frontend systemd service
+          sudo tee /etc/systemd/system/formhub-frontend.service > /dev/null << 'FRONTEND_SERVICE'
+        [Unit]
+        Description=FormHub Frontend
+        After=network.target
+        
+        [Service]
+        Type=simple
+        User=${{ secrets.EC2_USER }}
+        Group=${{ secrets.EC2_USER }}
+        WorkingDirectory=${{ env.FRONTEND_PATH }}
+        ExecStart=/usr/bin/npm start
+        Restart=always
+        RestartSec=10
+        Environment=NODE_ENV=production
+        Environment=PORT=${{ env.FRONTEND_PORT }}
+        
+        [Install]
+        WantedBy=multi-user.target
+        FRONTEND_SERVICE
+          
+          # Back to API directory for API service setup
+          cd ${{ env.DEPLOY_PATH }}
           
           # Create systemd service
           sudo tee /etc/systemd/system/${{ env.SERVICE_NAME }}.service > /dev/null << 'SERVICE'
@@ -119,25 +207,56 @@ jobs:
         WantedBy=multi-user.target
         SERVICE
           
-          # Start service
+          # Start services
           sudo systemctl daemon-reload
           sudo systemctl enable ${{ env.SERVICE_NAME }}
+          sudo systemctl enable formhub-frontend
           sudo systemctl start ${{ env.SERVICE_NAME }}
-          sleep 10
+          sudo systemctl start formhub-frontend
+          sleep 15
+          echo "=== API Service Status ==="
           sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
+          echo "=== Frontend Service Status ==="
+          sudo systemctl status formhub-frontend --no-pager
         DEPLOY
     - name: Verify Deployment
       run: |
         echo "Verifying FormHub deployment..."
-        sleep 15
+        sleep 20
+        
+        # Test API
+        echo "=== Testing API ==="
         for i in {1..5}; do
           if curl -f http://${{ secrets.EC2_HOST }}:${{ env.SERVICE_PORT }}/health; then
-            echo "FormHub health check passed!"
-            echo "FormHub is live at: http://${{ secrets.EC2_HOST }}:${{ env.SERVICE_PORT }}"
+            echo "✅ FormHub API health check passed!"
             break
           else
-            echo "Attempt $i failed, retrying..."
+            echo "API attempt $i failed, retrying..."
             sleep 10
           fi
         done
-        echo "FormHub deployment verification completed"
+        
+        # Test Frontend
+        echo "=== Testing Frontend ==="
+        for i in {1..5}; do
+          if curl -f -I http://${{ secrets.EC2_HOST }}:${{ env.FRONTEND_PORT }}/ | grep -q "200\|301\|302"; then
+            echo "✅ FormHub Frontend is responding!"
+            break
+          else
+            echo "Frontend attempt $i failed, retrying..."
+            sleep 10
+          fi
+        done
+        
+        # Test HTTPS endpoints
+        echo "=== Testing HTTPS ==="
+        if curl -f -k https://formhub.mejona.in/health; then
+          echo "✅ HTTPS API is working!"
+        fi
+        if curl -f -k -I https://formhub.mejona.in/ | grep -q "200\|301\|302"; then
+          echo "✅ HTTPS Frontend is working!"
+        fi
+        
+        echo "🎉 FormHub deployment verification completed!"
+        echo "📊 Dashboard: https://formhub.mejona.in"
+        echo "🔗 API: https://formhub.mejona.in/api/v1"
