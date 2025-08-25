@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -27,7 +28,7 @@ func RateLimit(redis *redis.Client) gin.HandlerFunc {
 		
 		// Check current count
 		current, err := redis.Get(ctx, key).Int()
-		if err != nil && err != redis.Nil {
+		if err != nil && !errors.Is(err, redis.Nil) {
 			// If Redis fails, allow the request
 			c.Next()
 			return
