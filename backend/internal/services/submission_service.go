@@ -155,7 +155,7 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	apiKeyQuery := `
 		SELECT id, user_id, name, permissions, rate_limit, is_active, last_used_at
 		FROM api_keys 
-		WHERE key_hash = $1 AND is_active = true
+		WHERE key_hash = ? AND is_active = true
 	`
 
 	var apiKey models.APIKey
@@ -171,7 +171,7 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	}
 
 	// Update last used timestamp
-	s.db.Exec("UPDATE api_keys SET last_used_at = $1 WHERE id = $2", time.Now(), apiKey.ID)
+	s.db.Exec("UPDATE api_keys SET last_used_at = ? WHERE id = ?", time.Now(), apiKey.ID)
 
 	// Get any active form for this user (for simplicity, we'll use the first active form)
 	// In a real implementation, you might want to link API keys to specific forms
@@ -181,7 +181,7 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 			file_uploads, max_file_size, allowed_origins, is_active, submission_count,
 			created_at, updated_at
 		FROM forms 
-		WHERE user_id = $1 AND is_active = true 
+		WHERE user_id = ? AND is_active = true 
 		ORDER BY created_at DESC 
 		LIMIT 1
 	`
@@ -268,7 +268,7 @@ func (s *SubmissionService) saveSubmission(submission *models.Submission) error 
 	query := `
 		INSERT INTO submissions (id, form_id, data, ip_address, user_agent, referrer,
 			is_spam, spam_score, email_sent, webhook_sent, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err = s.db.Exec(query,
@@ -346,12 +346,12 @@ func (s *SubmissionService) sendWebhook(form *models.Form, submission *models.Su
 }
 
 func (s *SubmissionService) markEmailSent(submissionID uuid.UUID) {
-	query := `UPDATE submissions SET email_sent = true WHERE id = $1`
+	query := `UPDATE submissions SET email_sent = true WHERE id = ?`
 	s.db.Exec(query, submissionID)
 }
 
 func (s *SubmissionService) markWebhookSent(submissionID uuid.UUID) {
-	query := `UPDATE submissions SET webhook_sent = true WHERE id = $1`
+	query := `UPDATE submissions SET webhook_sent = true WHERE id = ?`
 	s.db.Exec(query, submissionID)
 }
 

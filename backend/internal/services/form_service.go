@@ -75,7 +75,7 @@ func (s *FormService) CreateForm(userID uuid.UUID, req models.CreateFormRequest)
 		INSERT INTO forms (id, user_id, name, description, target_email, cc_emails, subject, 
 			success_message, redirect_url, webhook_url, spam_protection, recaptcha_secret,
 			file_uploads, max_file_size, allowed_origins, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err = s.db.Exec(query,
@@ -100,7 +100,7 @@ func (s *FormService) GetFormByID(formID uuid.UUID) (*models.Form, error) {
 			success_message, redirect_url, webhook_url, spam_protection, recaptcha_secret,
 			file_uploads, max_file_size, allowed_origins, is_active, submission_count,
 			created_at, updated_at
-		FROM forms WHERE id = $1 AND is_active = true
+		FROM forms WHERE id = ? AND is_active = true
 	`
 
 	err := s.db.QueryRow(query, formID).Scan(
@@ -127,7 +127,7 @@ func (s *FormService) GetUserForms(userID uuid.UUID) ([]models.Form, error) {
 			success_message, redirect_url, webhook_url, spam_protection, recaptcha_secret,
 			file_uploads, max_file_size, allowed_origins, is_active, submission_count,
 			created_at, updated_at
-		FROM forms WHERE user_id = $1 AND is_active = true
+		FROM forms WHERE user_id = ? AND is_active = true
 		ORDER BY created_at DESC
 	`
 
@@ -190,11 +190,11 @@ func (s *FormService) UpdateForm(formID uuid.UUID, userID uuid.UUID, req models.
 
 	query := `
 		UPDATE forms SET 
-			name = $2, description = $3, target_email = $4, cc_emails = $5,
-			subject = $6, success_message = $7, redirect_url = $8, webhook_url = $9,
-			spam_protection = $10, recaptcha_secret = $11, file_uploads = $12,
-			max_file_size = $13, allowed_origins = $14, updated_at = $15
-		WHERE id = $1 AND user_id = $16
+			name = ?, description = ?, target_email = ?, cc_emails = ?,
+			subject = ?, success_message = ?, redirect_url = ?, webhook_url = ?,
+			spam_protection = ?, recaptcha_secret = ?, file_uploads = ?,
+			max_file_size = ?, allowed_origins = ?, updated_at = ?
+		WHERE id = ? AND user_id = ?
 	`
 
 	_, err = s.db.Exec(query,
@@ -213,8 +213,8 @@ func (s *FormService) UpdateForm(formID uuid.UUID, userID uuid.UUID, req models.
 
 func (s *FormService) DeleteForm(formID uuid.UUID, userID uuid.UUID) error {
 	query := `
-		UPDATE forms SET is_active = false, updated_at = $1 
-		WHERE id = $2 AND user_id = $3
+		UPDATE forms SET is_active = false, updated_at = ? 
+		WHERE id = ? AND user_id = ?
 	`
 
 	result, err := s.db.Exec(query, time.Now(), formID, userID)
@@ -232,8 +232,8 @@ func (s *FormService) DeleteForm(formID uuid.UUID, userID uuid.UUID) error {
 
 func (s *FormService) IncrementSubmissionCount(formID uuid.UUID) error {
 	query := `
-		UPDATE forms SET submission_count = submission_count + 1, updated_at = $1
-		WHERE id = $2
+		UPDATE forms SET submission_count = submission_count + 1, updated_at = ?
+		WHERE id = ?
 	`
 
 	_, err := s.db.Exec(query, time.Now(), formID)
@@ -249,7 +249,7 @@ func (s *FormService) getUserByID(userID uuid.UUID) (*models.User, error) {
 	query := `
 		SELECT id, email, first_name, last_name, company, plan_type, is_active,
 			created_at, updated_at
-		FROM users WHERE id = $1 AND is_active = true
+		FROM users WHERE id = ? AND is_active = true
 	`
 
 	err := s.db.QueryRow(query, userID).Scan(
@@ -267,7 +267,7 @@ func (s *FormService) getUserByID(userID uuid.UUID) (*models.User, error) {
 
 func (s *FormService) getUserFormCount(userID uuid.UUID) (int, error) {
 	var count int
-	query := `SELECT COUNT(*) FROM forms WHERE user_id = $1 AND is_active = true`
+	query := `SELECT COUNT(*) FROM forms WHERE user_id = ? AND is_active = true`
 	err := s.db.QueryRow(query, userID).Scan(&count)
 	return count, err
 }

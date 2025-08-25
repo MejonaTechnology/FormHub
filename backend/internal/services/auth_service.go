@@ -36,7 +36,7 @@ func NewAuthService(db *sql.DB, redis *redis.Client, jwtSecret string) *AuthServ
 func (s *AuthService) Register(req models.RegisterRequest) (*models.AuthResponse, error) {
 	// Check if user already exists
 	var exists bool
-	err := s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", req.Email).Scan(&exists)
+	err := s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", req.Email).Scan(&exists)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check user existence: %w", err)
 	}
@@ -68,7 +68,7 @@ func (s *AuthService) Register(req models.RegisterRequest) (*models.AuthResponse
 	query := `
 		INSERT INTO users (id, email, password_hash, first_name, last_name, company, 
 			plan_type, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err = s.db.Exec(query,
@@ -108,7 +108,7 @@ func (s *AuthService) Login(req models.LoginRequest) (*models.AuthResponse, erro
 	query := `
 		SELECT id, email, password_hash, first_name, last_name, company, 
 			plan_type, is_active, created_at, updated_at
-		FROM users WHERE email = $1 AND is_active = true
+		FROM users WHERE email = ? AND is_active = true
 	`
 
 	err := s.db.QueryRow(query, req.Email).Scan(
@@ -168,7 +168,7 @@ func (s *AuthService) GetUserByID(userID uuid.UUID) (*models.User, error) {
 	query := `
 		SELECT id, email, first_name, last_name, company, plan_type, is_active,
 			created_at, updated_at
-		FROM users WHERE id = $1 AND is_active = true
+		FROM users WHERE id = ? AND is_active = true
 	`
 
 	err := s.db.QueryRow(query, userID).Scan(
@@ -208,7 +208,7 @@ func (s *AuthService) CreateAPIKey(userID uuid.UUID, name string) (*models.APIKe
 	query := `
 		INSERT INTO api_keys (id, user_id, name, key_hash, permissions, rate_limit,
 			is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	_, err := s.db.Exec(query,
@@ -228,7 +228,7 @@ func (s *AuthService) GetUserAPIKeys(userID uuid.UUID) ([]models.APIKey, error) 
 	query := `
 		SELECT id, user_id, name, permissions, rate_limit, is_active,
 			last_used_at, created_at, updated_at
-		FROM api_keys WHERE user_id = $1 AND is_active = true
+		FROM api_keys WHERE user_id = ? AND is_active = true
 		ORDER BY created_at DESC
 	`
 
@@ -257,8 +257,8 @@ func (s *AuthService) GetUserAPIKeys(userID uuid.UUID) ([]models.APIKey, error) 
 
 func (s *AuthService) DeleteAPIKey(keyID uuid.UUID, userID uuid.UUID) error {
 	query := `
-		UPDATE api_keys SET is_active = false, updated_at = $1
-		WHERE id = $2 AND user_id = $3
+		UPDATE api_keys SET is_active = false, updated_at = ?
+		WHERE id = ? AND user_id = ?
 	`
 
 	result, err := s.db.Exec(query, time.Now(), keyID, userID)
