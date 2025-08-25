@@ -59,7 +59,7 @@ jobs:
         ENVIRONMENT=production
         PORT=9000
         DATABASE_URL=root:${{ secrets.DB_PASSWORD }}@tcp(localhost:3306)/formhub?parseTime=true
-        REDIS_URL=
+        REDIS_URL=redis://localhost:6379
         JWT_SECRET=${{ secrets.JWT_SECRET }}
         ALLOWED_ORIGINS=http://${{ secrets.EC2_HOST }}:9000,https://formhub.mejona.in,https://api.formhub.mejona.in
         SMTP_HOST=smtp.gmail.com
