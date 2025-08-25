@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
@@ -28,10 +27,15 @@ func RateLimit(redis *redis.Client) gin.HandlerFunc {
 		
 		// Check current count
 		current, err := redis.Get(ctx, key).Int()
-		if err != nil && !errors.Is(err, redis.Nil) {
-			// If Redis fails, allow the request
-			c.Next()
-			return
+		if err != nil {
+			if err.Error() == "redis: nil" {
+				// Key doesn't exist, start with 0
+				current = 0
+			} else {
+				// If Redis fails, allow the request
+				c.Next()
+				return
+			}
 		}
 		
 		// Rate limit: 100 requests per minute per IP

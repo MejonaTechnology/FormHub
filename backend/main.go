@@ -47,7 +47,6 @@ func main() {
 	}
 
 	// Initialize services
-	userService := services.NewUserService(db, redis)
 	formService := services.NewFormService(db, redis)
 	submissionService := services.NewSubmissionService(db, redis, emailService)
 	authService := services.NewAuthService(db, redis, cfg.JWTSecret)
