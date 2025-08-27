@@ -106,7 +106,7 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H 13.127.59.135 >> ~/.ssh/known_hosts
     - name: Create Environment File
       run: |
         cat > .env << 'EOF'
@@ -115,7 +115,7 @@ jobs:
         DATABASE_URL=root:${{ secrets.DB_PASSWORD }}@tcp(localhost:3306)/formhub?parseTime=true
         REDIS_URL=redis://localhost:6379
         JWT_SECRET=${{ secrets.JWT_SECRET }}
-        ALLOWED_ORIGINS=http://${{ secrets.EC2_HOST }}:9000,https://formhub.mejona.in,https://api.formhub.mejona.in
+        ALLOWED_ORIGINS=http://13.127.59.135:9000,https://formhub.mejona.in,https://api.formhub.mejona.in
         SMTP_HOST=smtp.gmail.com
         SMTP_PORT=587
         SMTP_USERNAME=${{ secrets.SMTP_USERNAME }}
@@ -126,12 +126,12 @@ jobs:
     - name: Deploy to Server
       run: |
         echo "Deploying FormHub to AWS EC2..."
-        scp -i ~/.ssh/id_rsa backend/${{ env.SERVICE_NAME }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
-        scp -i ~/.ssh/id_rsa .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
-        scp -i ~/.ssh/id_rsa backend/migrations/001_initial_schema.sql ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
-        scp -i ~/.ssh/id_rsa frontend-dist.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/
+        scp -i ~/.ssh/id_rsa backend/${{ env.SERVICE_NAME }} ubuntu@13.127.59.135:/tmp/
+        scp -i ~/.ssh/id_rsa .env ubuntu@13.127.59.135:/tmp/
+        scp -i ~/.ssh/id_rsa backend/migrations/001_initial_schema.sql ubuntu@13.127.59.135:/tmp/
+        scp -i ~/.ssh/id_rsa frontend-dist.tar.gz ubuntu@13.127.59.135:/tmp/
         
-        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'DEPLOY'
+        ssh -i ~/.ssh/id_rsa ubuntu@13.127.59.135 << 'DEPLOY'
           # Create deploy directories
           sudo mkdir -p ${{ env.DEPLOY_PATH }}
           sudo mkdir -p ${{ env.FRONTEND_PATH }}
@@ -253,7 +253,7 @@ jobs:
         # Test API
         echo "=== Testing API ==="
         for i in {1..5}; do
-          if curl -f http://${{ secrets.EC2_HOST }}:${{ env.SERVICE_PORT }}/health; then
+          if curl -f http://13.127.59.135:${{ env.SERVICE_PORT }}/health; then
             echo "✅ FormHub API health check passed!"
             break
           else
@@ -265,7 +265,7 @@ jobs:
         # Test Frontend
         echo "=== Testing Frontend ==="
         for i in {1..5}; do
-          if curl -f -I http://${{ secrets.EC2_HOST }}:${{ env.FRONTEND_PORT }}/ | grep -q "200\|301\|302"; then
+          if curl -f -I http://13.127.59.135:${{ env.FRONTEND_PORT }}/ | grep -q "200\|301\|302"; then
             echo "✅ FormHub Frontend is responding!"
             break
           else
