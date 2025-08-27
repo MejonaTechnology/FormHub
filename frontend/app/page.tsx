@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
@@ -5,14 +7,14 @@ export default function HomePage() {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="text-2xl font-bold text-blue-600">FormHub</div>
+            <Link href="/" className="text-2xl font-bold text-blue-600">FormHub</Link>
             <nav className="flex space-x-8">
-              <a href="/docs" className="text-gray-500 hover:text-blue-600">Documentation</a>
-              <a href="/pricing" className="text-gray-500 hover:text-blue-600">Pricing</a>
-              <a href="/auth/login" className="text-gray-500 hover:text-blue-600">Sign In</a>
-              <a href="/auth/register" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+              <Link href="/docs" className="text-gray-500 hover:text-blue-600">Documentation</Link>
+              <Link href="/pricing" className="text-gray-500 hover:text-blue-600">Pricing</Link>
+              <Link href="/auth/login" className="text-gray-500 hover:text-blue-600">Sign In</Link>
+              <Link href="/auth/register" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                 Get Started
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
