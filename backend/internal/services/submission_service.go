@@ -171,7 +171,7 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	}
 
 	// Update last used timestamp
-	s.db.Exec("UPDATE api_keys SET last_used_at = ? WHERE id = ?", time.Now(), apiKey.ID)
+	s.db.Exec("UPDATE api_keys SET last_used_at = ? WHERE id = ?", time.Now(), apiKey.ID.String())
 
 	// Try to get an existing form for this user
 	formQuery := `
@@ -186,7 +186,7 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	`
 
 	var form models.Form
-	err = s.db.QueryRow(formQuery, apiKey.UserID).Scan(
+	err = s.db.QueryRow(formQuery, apiKey.UserID.String()).Scan(
 		&form.ID, &form.UserID, &form.Name, &form.Description, &form.TargetEmail,
 		&form.CCEmails, &form.Subject, &form.SuccessMessage, &form.RedirectURL,
 		&form.WebhookURL, &form.SpamProtection, &form.RecaptchaSecret,
@@ -195,25 +195,61 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	)
 
 	if err != nil {
-		// No form found, create a default form using user's email (like Web3Forms)
-		userEmail, userErr := s.getUserEmail(apiKey.UserID)
-		if userErr != nil {
-			return nil, nil, fmt.Errorf("no form configured and unable to get user email")
-		}
+		if err == sql.ErrNoRows {
+			// No form found, create a default form using user's email (like Web3Forms)
+			userEmail, userErr := s.getUserEmail(apiKey.UserID)
+			if userErr != nil {
+				return nil, nil, fmt.Errorf("no form configured and unable to get user email: %w", userErr)
+			}
 
-		// Create default form
-		defaultForm := &models.Form{
-			ID:             uuid.New(),
-			UserID:         apiKey.UserID,
-			Name:           "Default Form",
-			Description:    "Auto-created default form for API submissions",
-			TargetEmail:    userEmail,
-			Subject:        "New Form Submission",
-			SuccessMessage: "Thank you for your submission!",
-			IsActive:       true,
-		}
+			// Check again for form creation race condition (concurrent requests)
+			// Try one more time in case another request created a form
+			err = s.db.QueryRow(formQuery, apiKey.UserID.String()).Scan(
+				&form.ID, &form.UserID, &form.Name, &form.Description, &form.TargetEmail,
+				&form.CCEmails, &form.Subject, &form.SuccessMessage, &form.RedirectURL,
+				&form.WebhookURL, &form.SpamProtection, &form.RecaptchaSecret,
+				&form.FileUploads, &form.MaxFileSize, &form.AllowedOrigins,
+				&form.IsActive, &form.SubmissionCount, &form.CreatedAt, &form.UpdatedAt,
+			)
 
-		return defaultForm, &apiKey, nil
+			if err == nil {
+				// Form was created by another concurrent request
+				log.Printf("Found form created by concurrent request for user %s", apiKey.UserID.String())
+				return &form, &apiKey, nil
+			}
+
+			// Still no form, proceed with creation
+			defaultForm, createErr := s.createDefaultForm(apiKey.UserID, userEmail)
+			if createErr != nil {
+				// Check if the error is due to concurrent form creation (duplicate key)
+				if strings.Contains(createErr.Error(), "duplicate") || strings.Contains(createErr.Error(), "Duplicate") {
+					log.Printf("Concurrent form creation detected for user %s, retrying form lookup", apiKey.UserID.String())
+					
+					// Try to get the form that was created by the concurrent request
+					finalErr := s.db.QueryRow(formQuery, apiKey.UserID.String()).Scan(
+						&form.ID, &form.UserID, &form.Name, &form.Description, &form.TargetEmail,
+						&form.CCEmails, &form.Subject, &form.SuccessMessage, &form.RedirectURL,
+						&form.WebhookURL, &form.SpamProtection, &form.RecaptchaSecret,
+						&form.FileUploads, &form.MaxFileSize, &form.AllowedOrigins,
+						&form.IsActive, &form.SubmissionCount, &form.CreatedAt, &form.UpdatedAt,
+					)
+					
+					if finalErr == nil {
+						return &form, &apiKey, nil
+					}
+				}
+				
+				return nil, nil, fmt.Errorf("failed to create default form: %w", createErr)
+			}
+
+			log.Printf("Auto-created default form (ID: %s) for user %s with email %s", 
+				defaultForm.ID.String(), apiKey.UserID.String(), userEmail)
+
+			return defaultForm, &apiKey, nil
+		}
+		
+		// Other database error
+		return nil, nil, fmt.Errorf("database error while looking up form: %w", err)
 	}
 
 	return &form, &apiKey, nil
@@ -222,11 +258,78 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 func (s *SubmissionService) getUserEmail(userID uuid.UUID) (string, error) {
 	var email string
 	query := `SELECT email FROM users WHERE id = ? AND is_active = true`
-	err := s.db.QueryRow(query, userID).Scan(&email)
+	err := s.db.QueryRow(query, userID.String()).Scan(&email)
 	if err != nil {
 		return "", fmt.Errorf("user not found")
 	}
 	return email, nil
+}
+
+func (s *SubmissionService) createDefaultForm(userID uuid.UUID, userEmail string) (*models.Form, error) {
+	// Create default form with proper UUID and timestamps
+	defaultForm := &models.Form{
+		ID:              uuid.New(),
+		UserID:          userID,
+		Name:            "Default Form",
+		Description:     "Auto-created default form for Web3Forms API submissions",
+		TargetEmail:     userEmail,
+		Subject:         "New Form Submission",
+		SuccessMessage:  "Thank you for your submission!",
+		SpamProtection:  true,  // Enable basic spam protection
+		FileUploads:     false, // Disabled by default for security
+		MaxFileSize:     5242880, // 5MB default (not 0)
+		IsActive:        true,
+		SubmissionCount: 0,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+	}
+
+	// Use a transaction for safety
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Insert form into database - MySQL compatible query
+	query := `
+		INSERT INTO forms (id, user_id, name, description, target_email, cc_emails, subject, 
+			success_message, redirect_url, webhook_url, spam_protection, recaptcha_secret,
+			file_uploads, max_file_size, allowed_origins, is_active, submission_count, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`
+
+	log.Printf("Creating default form for user %s with email %s", userID.String(), userEmail)
+	
+	result, err := tx.Exec(query,
+		defaultForm.ID.String(), defaultForm.UserID.String(), defaultForm.Name, defaultForm.Description, 
+		defaultForm.TargetEmail, defaultForm.CCEmails, defaultForm.Subject, 
+		defaultForm.SuccessMessage, defaultForm.RedirectURL, defaultForm.WebhookURL,
+		defaultForm.SpamProtection, defaultForm.RecaptchaSecret, defaultForm.FileUploads,
+		defaultForm.MaxFileSize, defaultForm.AllowedOrigins, defaultForm.IsActive,
+		defaultForm.SubmissionCount, defaultForm.CreatedAt, defaultForm.UpdatedAt,
+	)
+
+	if err != nil {
+		log.Printf("Failed to insert default form: %v", err)
+		return nil, fmt.Errorf("failed to insert default form into database: %w", err)
+	}
+
+	// Check if the insert was successful
+	rowsAffected, err := result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		log.Printf("Form creation failed - rows affected: %d, error: %v", rowsAffected, err)
+		return nil, fmt.Errorf("form creation did not affect any rows")
+	}
+
+	// Commit the transaction
+	if err := tx.Commit(); err != nil {
+		log.Printf("Failed to commit form creation transaction: %v", err)
+		return nil, fmt.Errorf("failed to commit form creation: %w", err)
+	}
+
+	log.Printf("Successfully created default form with ID %s", defaultForm.ID.String())
+	return defaultForm, nil
 }
 
 func (s *SubmissionService) checkRateLimit(apiKey *models.APIKey, ipAddress string) error {
