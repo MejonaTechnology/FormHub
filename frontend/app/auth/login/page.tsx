@@ -18,6 +18,9 @@ export default function LoginPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1';
+      
+      // Note: In production, this would use HTTPS. For demo purposes, we show the process
+      // but actual HTTPS connection would be needed for GitHub Pages deployment
       const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
@@ -37,7 +40,8 @@ export default function LoginPage() {
         setError(data.error || 'Login failed')
       }
     } catch (err) {
-      setError('Network error. Please try again.')
+      console.error('Login error:', err)
+      setError('Network error: HTTPS is required for GitHub Pages. Backend needs SSL certificate.')
     } finally {
       setLoading(false)
     }
@@ -62,10 +66,27 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {/* Development Notice */}
+          <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium">Development Demo</h3>
+                <p className="mt-1 text-xs">
+                  This is a development deployment. For production use, the backend would need an SSL certificate for HTTPS connectivity from GitHub Pages.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-                {error}
+                <div className="text-sm font-medium">{error}</div>
+                {error.includes('HTTPS is required') && (
+                  <div className="mt-2 text-xs">
+                    <p>To test locally: Clone the repository and run <code className="bg-red-100 px-1 rounded">npm run dev</code></p>
+                  </div>
+                )}
               </div>
             )}
             

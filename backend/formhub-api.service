@@ -1,0 +1,26 @@
+[Unit]
+Description=FormHub API Service
+After=network.target mysql.service redis.service
+Wants=mysql.service redis.service
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/opt/formhub
+ExecStart=/opt/formhub/formhub-api
+EnvironmentFile=/opt/formhub/.env.production
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=formhub-api
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/formhub
+
+[Install]
+WantedBy=multi-user.target
