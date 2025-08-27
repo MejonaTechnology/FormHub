@@ -1,7 +1,7 @@
 # 🚀 FormHub EC2 Deployment Guide
 
 ## Your Server Details
-- **Server IP**: 13.201.64.45
+- **Server IP**: 13.127.59.135
 - **User**: ec2-user  
 - **Key File**: `D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem`
 - **Email Configured**: mejona.tech@gmail.com
@@ -18,7 +18,7 @@ deploy-to-ec2.bat
 
 ### Step 1: Test Connection
 ```bash
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135
 ```
 
 ### Step 2: Prepare Server
@@ -41,13 +41,13 @@ exit
 ### Step 3: Upload FormHub Files
 ```bash
 # From your Windows machine
-scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -r FormHub ec2-user@13.201.64.45:/home/ec2-user/
+scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -r FormHub ec2-user@13.127.59.135:/home/ec2-user/
 ```
 
 ### Step 4: Deploy FormHub
 ```bash
 # SSH back to server
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135
 
 # Move to deployment location
 sudo mkdir -p /opt/formhub
@@ -75,23 +75,23 @@ docker-compose up -d
 
 ### 1. Health Check
 ```bash
-curl http://13.201.64.45:8080/health
+curl http://13.127.59.135:8080/health
 ```
 **Expected**: `{"status":"healthy","version":"1.0.0"}`
 
 ### 2. Register Test User
 ```bash
-curl -X POST http://13.201.64.45:8080/api/v1/auth/register \
+curl -X POST http://13.127.59.135:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@formhub.com","password":"password123","first_name":"Test","last_name":"User"}'
 ```
 
 ### 3. Access Frontend
-Open browser: `http://13.201.64.45:3000`
+Open browser: `http://13.127.59.135:3000`
 
 ### 4. Test Form Submission
 ```bash
-curl -X POST http://13.201.64.45:8080/api/v1/submit \
+curl -X POST http://13.127.59.135:8080/api/v1/submit \
   -H "Content-Type: application/json" \
   -d '{"access_key":"YOUR_API_KEY","email":"test@example.com","message":"Test from FormHub!"}'
 ```
@@ -99,9 +99,9 @@ curl -X POST http://13.201.64.45:8080/api/v1/submit \
 ## 🌐 Domain Setup (Optional)
 
 ### 1. Configure DNS
-Point your domain to: `13.201.64.45`
-- A record: `formhub.yourdomain.com → 13.201.64.45`
-- A record: `api.yourdomain.com → 13.201.64.45`
+Point your domain to: `13.127.59.135`
+- A record: `formhub.yourdomain.com → 13.127.59.135`
+- A record: `api.yourdomain.com → 13.127.59.135`
 
 ### 2. Update Environment
 ```bash
@@ -171,8 +171,8 @@ docker-compose logs -f --tail=100 api
 
 ## 🎉 Success Indicators
 
-✅ **API Health**: http://13.201.64.45:8080/health returns 200  
-✅ **Frontend**: http://13.201.64.45:3000 loads dashboard  
+✅ **API Health**: http://13.127.59.135:8080/health returns 200  
+✅ **Frontend**: http://13.127.59.135:3000 loads dashboard  
 ✅ **Email**: Test form submission sends email to mejona.tech@gmail.com  
 ✅ **Database**: User registration works  
 ✅ **File Upload**: Form submissions save to database  

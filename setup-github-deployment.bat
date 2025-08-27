@@ -44,7 +44,7 @@ echo    Go to: Repository Settings → Secrets and variables → Actions
 echo    Add these secrets:
 echo.
 echo    EC2_SSH_KEY: [Copy content from mejonaN.pem file]
-echo    EC2_HOST: 13.201.64.45
+echo    EC2_HOST: 13.127.59.135
 echo    EC2_USER: ec2-user
 echo    DB_PASSWORD: mejona123
 echo    JWT_SECRET: formhub-prod-secret-2025
@@ -66,14 +66,14 @@ echo After setting up GitHub repository and secrets:
 echo ✓ Push code to trigger automatic deployment
 echo ✓ FormHub will deploy to port 9000 on your EC2
 echo ✓ Add port 9000 to AWS Security Group
-echo ✓ Test: http://13.201.64.45:9000/health
+echo ✓ Test: http://13.127.59.135:9000/health
 echo.
 
 echo ========================================
 echo    Deployment URLs After Setup
 echo ========================================
 echo.
-echo 🔗 FormHub API: http://13.201.64.45:9000/health
+echo 🔗 FormHub API: http://13.127.59.135:9000/health
 echo 📧 Email: mejona.tech@gmail.com (configured)
 echo 🗄️ Database: MySQL formhub database
 echo 📊 Service: systemd formhub-api.service

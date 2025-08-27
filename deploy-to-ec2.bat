@@ -4,7 +4,7 @@ echo    FormHub EC2 Deployment
 echo ========================================
 echo.
 
-set EC2_HOST=13.201.64.45
+set EC2_HOST=13.127.59.135
 set EC2_USER=ec2-user
 set KEY_PATH="D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem"
 

@@ -4,7 +4,7 @@ echo    Testing FormHub on EC2
 echo ========================================
 echo.
 
-set SERVER_IP=13.201.64.45
+set SERVER_IP=13.127.59.135
 set API_URL=http://%SERVER_IP%:8080
 set FRONTEND_URL=http://%SERVER_IP%:3000
 

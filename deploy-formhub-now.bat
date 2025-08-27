@@ -15,10 +15,10 @@ echo Deploying FormHub to port 9000 (API) and 9001 (Frontend)...
 echo.
 
 echo [1/4] Uploading optimized FormHub configuration...
-scp -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" -r backend ec2-user@13.201.64.45:/home/ec2-user/formhub/
+scp -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" -r backend ec2-user@13.127.59.135:/home/ec2-user/formhub/
 
 echo [2/4] Creating lightweight FormHub setup...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 # Create FormHub directory
 mkdir -p /home/ec2-user/formhub
 cd /home/ec2-user/formhub
@@ -30,7 +30,7 @@ PORT=9000
 DATABASE_URL=mysql://root:mejona123@localhost:3306/formhub?parseTime=true
 REDIS_URL=
 JWT_SECRET=formhub-prod-secret-$(date +%s)
-ALLOWED_ORIGINS=http://13.201.64.45:9000,https://formhub.mejona.in,http://localhost:9000
+ALLOWED_ORIGINS=http://13.127.59.135:9000,https://formhub.mejona.in,http://localhost:9000
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=mejona.tech@gmail.com
@@ -43,7 +43,7 @@ echo 'Environment configured for production'
 "
 
 echo [3/4] Setting up FormHub database...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 # Create FormHub database
 mysql -u root -pmejona123 -e 'CREATE DATABASE IF NOT EXISTS formhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' 2>/dev/null || echo 'Database may already exist'
 
@@ -129,7 +129,7 @@ echo 'FormHub database setup complete'
 "
 
 echo [4/4] Starting FormHub service...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 cd /home/ec2-user/formhub
 
 # Build and run FormHub (will use existing Go installation)
@@ -154,22 +154,22 @@ echo    🎉 FormHub Deployed Successfully!
 echo ========================================
 echo.
 echo FormHub is running at:
-echo 🔗 API: http://13.201.64.45:9000/health
+echo 🔗 API: http://13.127.59.135:9000/health
 echo 📧 Email: mejona.tech@gmail.com (configured)
 echo 💾 Database: MySQL formhub database
 echo.
 echo Testing deployment...
 timeout /t 5 >nul
-curl -f http://13.201.64.45:9000/health
+curl -f http://13.127.59.135:9000/health
 
 echo.
 echo Next Steps:
 echo 1. Update AWS Security Group: Allow port 9000
-echo 2. Test API: http://13.201.64.45:9000/health  
+echo 2. Test API: http://13.127.59.135:9000/health  
 echo 3. Create first user account
 echo 4. Generate API keys for clients
 echo.
 echo Opening FormHub API in browser...
-start http://13.201.64.45:9000/health
+start http://13.127.59.135:9000/health
 echo.
 pause

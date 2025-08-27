@@ -173,8 +173,7 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	// Update last used timestamp
 	s.db.Exec("UPDATE api_keys SET last_used_at = ? WHERE id = ?", time.Now(), apiKey.ID)
 
-	// Get any active form for this user (for simplicity, we'll use the first active form)
-	// In a real implementation, you might want to link API keys to specific forms
+	// Try to get an existing form for this user
 	formQuery := `
 		SELECT id, user_id, name, description, target_email, cc_emails, subject,
 			success_message, redirect_url, webhook_url, spam_protection, recaptcha_secret,
@@ -196,10 +195,38 @@ func (s *SubmissionService) getFormByAccessKey(accessKey string) (*models.Form, 
 	)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("no active form found for this access key")
+		// No form found, create a default form using user's email (like Web3Forms)
+		userEmail, userErr := s.getUserEmail(apiKey.UserID)
+		if userErr != nil {
+			return nil, nil, fmt.Errorf("no form configured and unable to get user email")
+		}
+
+		// Create default form
+		defaultForm := &models.Form{
+			ID:             uuid.New(),
+			UserID:         apiKey.UserID,
+			Name:           "Default Form",
+			Description:    "Auto-created default form for API submissions",
+			TargetEmail:    userEmail,
+			Subject:        "New Form Submission",
+			SuccessMessage: "Thank you for your submission!",
+			IsActive:       true,
+		}
+
+		return defaultForm, &apiKey, nil
 	}
 
 	return &form, &apiKey, nil
+}
+
+func (s *SubmissionService) getUserEmail(userID uuid.UUID) (string, error) {
+	var email string
+	query := `SELECT email FROM users WHERE id = ? AND is_active = true`
+	err := s.db.QueryRow(query, userID).Scan(&email)
+	if err != nil {
+		return "", fmt.Errorf("user not found")
+	}
+	return email, nil
 }
 
 func (s *SubmissionService) checkRateLimit(apiKey *models.APIKey, ipAddress string) error {

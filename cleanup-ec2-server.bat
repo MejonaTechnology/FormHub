@@ -11,7 +11,7 @@ echo Big files found: 711MB Go cache + 71MB tar.gz
 echo.
 
 echo [1/6] Analyzing current memory usage...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'Top memory consumers:'
 ps aux --sort=-%mem | head -5
 echo
@@ -21,7 +21,7 @@ df -h /
 
 echo.
 echo [2/6] Cleaning up large unnecessary files...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'Removing Go installation files and cache (711MB + 71MB)...'
 rm -f /home/ec2-user/go1.23.0.linux-amd64.tar.gz
 rm -rf /home/ec2-user/go/pkg/mod/cache/download/
@@ -41,7 +41,7 @@ rm -f /home/ec2-user/*.rpm
 
 echo.
 echo [3/6] Optimizing systemd-journald (using 221MB memory!)...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'Configuring journal size limits...'
 sudo tee /etc/systemd/journald.conf.d/size.conf > /dev/null << EOF
 [Journal]
@@ -58,7 +58,7 @@ sudo systemctl restart systemd-journald
 
 echo.
 echo [4/6] Cleaning up Docker if present (and not needed)...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 if command -v docker >/dev/null 2>&1; then
     echo 'Cleaning Docker system...'
     sudo docker system prune -af || true
@@ -78,7 +78,7 @@ fi
 
 echo.
 echo [5/6] Optimizing PHP-FPM and Apache memory usage...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'Optimizing PHP-FPM for low memory...'
 sudo cp /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.backup
 sudo sed -i 's/pm.max_children = .*/pm.max_children = 5/' /etc/php-fpm.d/www.conf
@@ -102,7 +102,7 @@ sudo systemctl restart php-fpm httpd
 
 echo.
 echo [6/6] Final cleanup and optimization...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'Cleaning temporary files...'
 sudo find /tmp -type f -atime +7 -delete
 sudo find /var/tmp -type f -atime +7 -delete
@@ -141,7 +141,7 @@ echo ========================================
 echo.
 
 echo Checking results...
-ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:/Mejona Workspace/Product/Mejona complete website/mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'NEW DISK USAGE:'
 df -h / | grep -v Filesystem
 

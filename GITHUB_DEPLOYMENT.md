@@ -29,7 +29,7 @@ Add these secrets in GitHub repository settings:
 | Secret Name | Value | Description |
 |------------|-------|-------------|
 | `EC2_SSH_KEY` | Contents of `mejonaN.pem` file | SSH private key for EC2 |
-| `EC2_HOST` | `13.201.64.45` | Your EC2 server IP |
+| `EC2_HOST` | `13.127.59.135` | Your EC2 server IP |
 | `EC2_USER` | `ec2-user` | SSH username |
 | `DB_PASSWORD` | `mejona123` | MySQL root password |
 | `JWT_SECRET` | `formhub-prod-secret-2025` | JWT signing secret |
@@ -79,7 +79,7 @@ sudo systemctl restart formhub-api
 sudo systemctl logs -u formhub-api -f
 
 # Health check
-curl http://13.201.64.45:9000/health
+curl http://13.127.59.135:9000/health
 ```
 
 ## 🎯 After Deployment
@@ -94,16 +94,16 @@ Add inbound rule:
 ### 2. Test FormHub
 ```bash
 # Health check
-curl http://13.201.64.45:9000/health
+curl http://13.127.59.135:9000/health
 
 # Create user
-curl -X POST http://13.201.64.45:9000/api/v1/auth/register \
+curl -X POST http://13.127.59.135:9000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@formhub.com","password":"password123","first_name":"Test","last_name":"User"}'
 ```
 
 ### 3. Domain Setup (Optional)
-- Point `formhub.mejona.in` to `13.201.64.45`
+- Point `formhub.mejona.in` to `13.127.59.135`
 - Update `ALLOWED_ORIGINS` in GitHub secrets
 - Set up SSL with Let's Encrypt
 
@@ -132,7 +132,7 @@ FormHub/
 ## 📈 Monitoring
 
 ### Health Checks
-- **Endpoint**: `http://13.201.64.45:9000/health`
+- **Endpoint**: `http://13.127.59.135:9000/health`
 - **Expected**: `{"status":"healthy","version":"1.0.0"}`
 
 ### Service Status

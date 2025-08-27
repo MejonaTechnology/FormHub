@@ -2,8 +2,8 @@
 
 ## 🚀 Service Information
 - **Service Name**: FormHub - Form Backend Service
-- **URL**: http://13.201.64.45:9000
-- **Health Check**: http://13.201.64.45:9000/health
+- **URL**: http://13.127.59.135:9000
+- **Health Check**: http://13.127.59.135:9000/health
 - **Status**: ✅ FULLY OPERATIONAL
 - **Deployed**: 2025-08-25 03:09:38 UTC
 
@@ -36,7 +36,7 @@
 - **Success Message**: "Thank you for your message! We will get back to you soon."
 
 ## 🗄️ Database Access
-- **Server**: 13.201.64.45
+- **Server**: 13.127.59.135
 - **Database**: formhub
 - **User**: root
 - **Password**: mejona123
@@ -49,7 +49,7 @@
 - `submissions` - Form submission data
 
 ## ⚙️ Server Configuration
-- **Server**: AWS EC2 (13.201.64.45)
+- **Server**: AWS EC2 (13.127.59.135)
 - **OS**: Amazon Linux 2023
 - **Service**: systemd (formhub-api.service)
 - **Port**: 9000
@@ -74,7 +74,7 @@
 
 ### GitHub Secrets Configured
 - `EC2_SSH_KEY`: SSH private key for deployment
-- `EC2_HOST`: 13.201.64.45
+- `EC2_HOST`: 13.127.59.135
 - `EC2_USER`: ec2-user
 - `DB_PASSWORD`: mejona123
 - `JWT_SECRET`: formhub-prod-secret-2025
@@ -127,7 +127,7 @@ document.getElementById('contact-form').onsubmit = async (e) => {
   const formData = new FormData(e.target);
   const data = Object.fromEntries(formData);
   
-  const response = await fetch('http://13.201.64.45:9000/api/v1/submit', {
+  const response = await fetch('http://13.127.59.135:9000/api/v1/submit', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data)
@@ -151,7 +151,7 @@ document.getElementById('contact-form').onsubmit = async (e) => {
 ## 📈 Monitoring & Logs
 - **Service Status**: `sudo systemctl status formhub-api`
 - **Logs**: `journalctl -u formhub-api -f`
-- **Health Check**: `curl http://13.201.64.45:9000/health`
+- **Health Check**: `curl http://13.127.59.135:9000/health`
 - **Database Check**: `mysql -u root -pmejona123 formhub`
 
 ## 🚀 Production Readiness

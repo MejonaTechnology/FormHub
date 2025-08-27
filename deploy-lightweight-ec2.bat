@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 echo Server Analysis:
-echo ✓ IP: 13.201.64.45
+echo ✓ IP: 13.127.59.135
 echo ✓ Memory: 949MB (limited)
 echo ✓ Storage: 593MB free (tight!)
 echo ✓ Used ports: 8000, 8080-8087
@@ -53,10 +53,10 @@ echo ========================================
 echo.
 
 echo [1/5] Uploading FormHub source code...
-scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -r backend ec2-user@13.201.64.45:/home/ec2-user/formhub-src/
+scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -r backend ec2-user@13.127.59.135:/home/ec2-user/formhub-src/
 
 echo [2/5] Setting up Go environment and building...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 # Install Go if not present
 if ! command -v go &> /dev/null; then
     echo 'Installing Go...'
@@ -76,7 +76,7 @@ PORT=9000
 DATABASE_URL=mysql://root:password@localhost:3306/formhub?parseTime=true
 REDIS_URL=
 JWT_SECRET=formhub-production-secret-$(date +%s)
-ALLOWED_ORIGINS=http://13.201.64.45:9000,http://13.201.64.45:9001,https://yourdomain.com
+ALLOWED_ORIGINS=http://13.127.59.135:9000,http://13.127.59.135:9001,https://yourdomain.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=mejona.tech@gmail.com
@@ -95,7 +95,7 @@ go build -o formhub-api main.go
 "
 
 echo [3/5] Creating systemd service...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 sudo tee /etc/systemd/system/formhub.service > /dev/null << EOF
 [Unit]
 Description=FormHub API Service
@@ -118,16 +118,16 @@ sudo systemctl enable formhub
 "
 
 echo [4/5] Starting FormHub service...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 sudo systemctl start formhub
 sudo systemctl status formhub
 "
 
 echo [5/5] Setting up frontend (static files)...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 # Serve frontend through existing Apache on port 80
 sudo mkdir -p /var/www/html/formhub
-# Frontend will be accessible at http://13.201.64.45/formhub/
+# Frontend will be accessible at http://13.127.59.135/formhub/
 "
 
 goto FINISH
@@ -171,9 +171,9 @@ echo volumes:
 echo   formhub_db:
 ) > docker-compose.custom.yml
 
-scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" docker-compose.custom.yml ec2-user@13.201.64.45:/home/ec2-user/
+scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" docker-compose.custom.yml ec2-user@13.127.59.135:/home/ec2-user/
 
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 sudo systemctl start docker 2>/dev/null || sudo yum install -y docker && sudo systemctl start docker
 docker-compose -f docker-compose.custom.yml up -d
 "
@@ -203,11 +203,11 @@ echo ========================================
 echo.
 
 if "%CHOICE%"=="1" (
-    echo FormHub API running on: http://13.201.64.45:9000/health
-    echo Frontend accessible at: http://13.201.64.45/formhub/
+    echo FormHub API running on: http://13.127.59.135:9000/health
+    echo Frontend accessible at: http://13.127.59.135/formhub/
 ) else if "%CHOICE%"=="2" (
-    echo FormHub API running on: http://13.201.64.45:9010/health
-    echo Frontend running on: http://13.201.64.45:9011
+    echo FormHub API running on: http://13.127.59.135:9010/health
+    echo Frontend running on: http://13.127.59.135:9011
 )
 
 echo.
@@ -217,11 +217,11 @@ echo Testing deployment...
 timeout /t 5 >nul
 
 if "%CHOICE%"=="1" (
-    curl -f http://13.201.64.45:9000/health
-    start http://13.201.64.45:9000/health
+    curl -f http://13.127.59.135:9000/health
+    start http://13.127.59.135:9000/health
 ) else if "%CHOICE%"=="2" (
-    curl -f http://13.201.64.45:9010/health
-    start http://13.201.64.45:9010/health
+    curl -f http://13.127.59.135:9010/health
+    start http://13.127.59.135:9010/health
 )
 
 echo.

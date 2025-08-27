@@ -5,11 +5,11 @@ echo ========================================
 echo.
 
 echo Deploying FormHub to your EC2 server...
-echo Server: 13.201.64.45
+echo Server: 13.127.59.135
 echo.
 
 echo [1/4] Testing connection to EC2...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -o ConnectTimeout=10 ec2-user@13.201.64.45 "echo 'Connected successfully'"
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -o ConnectTimeout=10 ec2-user@13.127.59.135 "echo 'Connected successfully'"
 
 if %errorlevel% neq 0 (
     echo.
@@ -32,12 +32,12 @@ echo.
 
 echo [2/4] Uploading FormHub files to EC2...
 echo This may take a minute...
-scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -r backend frontend docker-compose.yml deploy ec2-user@13.201.64.45:/home/ec2-user/
+scp -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" -r backend frontend docker-compose.yml deploy ec2-user@13.127.59.135:/home/ec2-user/
 echo ✅ Files uploaded
 echo.
 
 echo [3/4] Installing Docker and setting up FormHub...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 echo 'Installing Docker...'
 sudo yum update -y > /dev/null 2>&1
 sudo yum install -y docker > /dev/null 2>&1
@@ -59,7 +59,7 @@ echo ✅ Docker installed and FormHub setup complete
 echo.
 
 echo [4/4] Starting FormHub services...
-ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.201.64.45 "
+ssh -i "D:\Mejona Workspace\Product\Mejona complete website\mejonaN.pem" ec2-user@13.127.59.135 "
 cd /opt/formhub
 /usr/local/bin/docker-compose up -d
 echo 'Waiting for services to start...'
@@ -74,8 +74,8 @@ echo ========================================
 echo.
 echo Your FormHub is running at:
 echo.
-echo 🔗 API Health Check: http://13.201.64.45:8080/health
-echo 🔗 Frontend Dashboard: http://13.201.64.45:3000
+echo 🔗 API Health Check: http://13.127.59.135:8080/health
+echo 🔗 Frontend Dashboard: http://13.127.59.135:3000
 echo.
 echo ⚠️  IMPORTANT: Update AWS Security Groups
 echo.
@@ -85,7 +85,7 @@ echo 2. Custom TCP - Port 3000 - Source: 0.0.0.0/0 (Frontend)
 echo 3. HTTP - Port 80 - Source: 0.0.0.0/0 (Web traffic)
 echo.
 echo After updating security groups, test:
-start http://13.201.64.45:8080/health
+start http://13.127.59.135:8080/health
 echo.
 echo 🎯 Next Steps:
 echo 1. Update security groups in AWS Console
