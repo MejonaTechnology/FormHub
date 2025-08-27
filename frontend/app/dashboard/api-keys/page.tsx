@@ -161,7 +161,10 @@ export default function ApiKeysPage() {
       })
 
       if (response.ok) {
-        fetchApiKeys() // Refresh the list
+        const token = localStorage.getItem('access_token')
+        if (token) {
+          fetchApiKeys(token) // Refresh the list
+        }
       } else {
         const error = await response.json()
         alert(`Error updating API key status: ${error.error || 'Unknown error'}`)
