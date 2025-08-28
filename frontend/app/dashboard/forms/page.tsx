@@ -79,7 +79,6 @@ export default function FormsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Forms API Response:', data)
         setForms(data.forms || [])
       } else if (response.status === 401) {
         localStorage.removeItem('formhub_token')
@@ -521,9 +520,14 @@ export default function FormsPage() {
                             <span className="font-medium">Target Email:</span> {form.target_email}
                           </p>
                           
-                          {form.cc_emails && form.cc_emails.length > 0 && (
+                          {form.cc_emails && Array.isArray(form.cc_emails) && form.cc_emails.length > 0 && (
                             <p className="text-sm text-gray-600">
                               <span className="font-medium">CC:</span> {form.cc_emails.join(', ')}
+                            </p>
+                          )}
+                          {form.cc_emails && typeof form.cc_emails === 'string' && (form.cc_emails as string).trim() && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">CC:</span> {form.cc_emails}
                             </p>
                           )}
                           

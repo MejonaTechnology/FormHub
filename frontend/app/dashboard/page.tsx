@@ -70,7 +70,6 @@ export default function DashboardPage() {
       })
       if (apiKeysResponse.ok) {
         const data = await apiKeysResponse.json()
-        console.log('Dashboard API Keys Response:', data)
         // Use same robust handling as API keys page
         const apiKeysData = data.api_keys || data.apiKeys || []
         const keys = Array.isArray(apiKeysData) ? apiKeysData.filter(key => 
@@ -84,10 +83,7 @@ export default function DashboardPage() {
           // Handle both is_active and isActive formats
           isActive: key.isActive !== undefined ? key.isActive : key.is_active
         })) : []
-        console.log('Dashboard Processed Keys:', keys)
         setApiKeys(keys)
-      } else {
-        console.error('Dashboard API Keys fetch failed:', apiKeysResponse.status, apiKeysResponse.statusText)
       }
 
       // Fetch forms
@@ -96,7 +92,6 @@ export default function DashboardPage() {
       })
       if (formsResponse.ok) {
         const data = await formsResponse.json()
-        console.log('Dashboard Forms Response:', data)
         // Handle different API response formats
         const formsData = data.forms || []
         const forms = Array.isArray(formsData) ? formsData.map(form => ({
@@ -106,10 +101,7 @@ export default function DashboardPage() {
           isActive: form.is_active !== undefined ? form.is_active : form.isActive,
           submissionCount: form.submission_count || form.submissionCount || 0
         })) : []
-        console.log('Dashboard Processed Forms:', forms)
         setForms(forms)
-      } else {
-        console.error('Dashboard Forms fetch failed:', formsResponse.status, formsResponse.statusText)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
