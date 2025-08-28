@@ -39,7 +39,12 @@ export default function RegisterPage() {
         localStorage.setItem('formhub_user', JSON.stringify(data.user))
         router.push('/dashboard')
       } else {
-        setError(data.error || 'Registration failed')
+        // Handle specific error codes
+        if (response.status === 409) {
+          setError('An account with this email already exists. Please use a different email or try logging in.')
+        } else {
+          setError(data.error || `Registration failed (${response.status})`)
+        }
       }
     } catch (err) {
       setError('Network error. Please try again.')
