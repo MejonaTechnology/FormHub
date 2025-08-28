@@ -69,8 +69,25 @@ export default function DashboardPage() {
         headers,
       })
       if (apiKeysResponse.ok) {
-        const apiKeysData = await apiKeysResponse.json()
-        setApiKeys(apiKeysData.api_keys || apiKeysData.apiKeys || [])
+        const data = await apiKeysResponse.json()
+        console.log('Dashboard API Keys Response:', data)
+        // Use same robust handling as API keys page
+        const apiKeysData = data.api_keys || data.apiKeys || []
+        const keys = Array.isArray(apiKeysData) ? apiKeysData.filter(key => 
+          key && 
+          typeof key === 'object' && 
+          key.id && 
+          key.name && 
+          typeof key.name === 'string'
+        ).map(key => ({
+          ...key,
+          // Handle both is_active and isActive formats
+          isActive: key.isActive !== undefined ? key.isActive : key.is_active
+        })) : []
+        console.log('Dashboard Processed Keys:', keys)
+        setApiKeys(keys)
+      } else {
+        console.error('Dashboard API Keys fetch failed:', apiKeysResponse.status, apiKeysResponse.statusText)
       }
 
       // Fetch forms
