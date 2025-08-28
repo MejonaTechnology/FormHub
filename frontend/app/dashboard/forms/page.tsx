@@ -44,7 +44,7 @@ export default function FormsPage() {
         return
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
       const response = await fetch(`${apiUrl}/forms`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -76,7 +76,7 @@ export default function FormsPage() {
         return
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
       const formData = {
         ...newForm,
         cc_emails: newForm.cc_emails ? newForm.cc_emails.split(',').map(email => email.trim()) : []
@@ -119,7 +119,7 @@ export default function FormsPage() {
       const token = localStorage.getItem('access_token')
       if (!token) return
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
       const response = await fetch(`${apiUrl}/forms/${formId}`, {
         method: 'PUT',
         headers: {
@@ -362,7 +362,7 @@ export default function FormsPage() {
                 <p>
                   1. Create a form with your email address as the target<br/>
                   2. Use your API key from the API Keys page<br/>
-                  3. Submit data to <code className="bg-blue-100 px-1 rounded">http://13.127.59.135:9000/api/v1/submit</code><br/>
+                  3. Submit data to <code className="bg-blue-100 px-1 rounded">https://formhub.mejona.in/api/v1/submit</code><br/>
                   4. Include the <code className="bg-blue-100 px-1 rounded">access_key</code> field with your API key
                 </p>
               </div>

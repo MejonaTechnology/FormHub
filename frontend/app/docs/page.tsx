@@ -70,7 +70,7 @@ export default function DocsPage() {
                 <p>The easiest way to get started is with plain HTML forms:</p>
                 
                 <div className="bg-gray-900 text-green-400 p-6 rounded-lg text-sm font-mono overflow-x-auto">
-                  <pre>{`<form action="http://13.127.59.135:9000/api/v1/submit" method="POST">
+                  <pre>{`<form action="https://formhub.mejona.in/api/v1/submit" method="POST">
   <input type="hidden" name="access_key" value="YOUR_API_KEY">
   <input type="hidden" name="subject" value="New Contact Form Submission">
   
@@ -107,7 +107,7 @@ export default function DocsPage() {
                 <div className="bg-gray-900 text-green-400 p-6 rounded-lg text-sm font-mono overflow-x-auto">
                   <pre>{`async function submitForm(formData) {
   try {
-    const response = await fetch('http://13.127.59.135:9000/api/v1/submit', {
+    const response = await fetch('https://formhub.mejona.in/api/v1/submit', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ function ContactForm() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://13.127.59.135:9000/api/v1/submit', {
+      const response = await fetch('https://formhub.mejona.in/api/v1/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -214,7 +214,7 @@ function ContactForm() {
                 
                 <h3>Submit Form</h3>
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <code>POST http://13.127.59.135:9000/api/v1/submit</code>
+                  <code>POST https://formhub.mejona.in/api/v1/submit</code>
                 </div>
 
                 <h4>Request Body</h4>

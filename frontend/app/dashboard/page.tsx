@@ -62,7 +62,7 @@ export default function DashboardPage() {
         'Content-Type': 'application/json',
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1';
       
       // Fetch API keys
       const apiKeysResponse = await fetch(`${apiUrl}/api-keys`, {

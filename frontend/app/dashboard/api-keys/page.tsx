@@ -36,7 +36,7 @@ export default function ApiKeysPage() {
 
   const fetchApiKeys = async (token: string) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1';
       console.log('API URL:', apiUrl);
       const response = await fetch(`${apiUrl}/api-keys`, {
         headers: {
@@ -79,7 +79,7 @@ export default function ApiKeysPage() {
     const token = localStorage.getItem('formhub_token')
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1';
       const response = await fetch(`${apiUrl}/api-keys`, {
         method: 'POST',
         headers: {
@@ -121,7 +121,7 @@ export default function ApiKeysPage() {
     const token = localStorage.getItem('formhub_token')
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1';
       const response = await fetch(`${apiUrl}/api-keys/${keyId}`, {
         method: 'DELETE',
         headers: {
@@ -150,7 +150,7 @@ export default function ApiKeysPage() {
         return
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
       const response = await fetch(`${apiUrl}/api-keys/${keyId}/toggle`, {
         method: 'PUT',
         headers: {
