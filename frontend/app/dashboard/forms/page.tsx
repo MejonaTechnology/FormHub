@@ -32,6 +32,7 @@ export default function FormsPage() {
   const [forms, setForms] = useState<Form[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
   const [newForm, setNewForm] = useState({
     name: '',
     description: '',
@@ -91,6 +92,7 @@ export default function FormsPage() {
 
   const createForm = async (e: React.FormEvent) => {
     e.preventDefault()
+    setCreateLoading(true)
     
     try {
       const token = localStorage.getItem('formhub_token')
@@ -134,6 +136,8 @@ export default function FormsPage() {
     } catch (error) {
       console.error('Error creating form:', error)
       alert('Error creating form. Please try again.')
+    } finally {
+      setCreateLoading(false)
     }
   }
 
@@ -157,6 +161,40 @@ export default function FormsPage() {
       }
     } catch (error) {
       console.error('Error updating form status:', error)
+    }
+  }
+
+  const deleteForm = async (formId: string, formName: string) => {
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete the form "${formName}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('formhub_token')
+      if (!token) return
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
+      const response = await fetch(`${apiUrl}/forms/${formId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        // Remove form from local state immediately for better UX
+        setForms(forms.filter(form => form.id !== formId))
+        // Also refresh from server
+        fetchForms()
+      } else {
+        const error = await response.json()
+        alert(`Error deleting form: ${error.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Error deleting form:', error)
+      alert('Error deleting form. Please try again.')
     }
   }
 
@@ -347,9 +385,20 @@ export default function FormsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    disabled={createLoading}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Create Form
+                    {createLoading ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating...
+                      </span>
+                    ) : (
+                      'Create Form'
+                    )}
                   </button>
                 </div>
               </form>
@@ -359,21 +408,31 @@ export default function FormsPage() {
 
         {/* Forms List */}
         {forms.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="mx-auto h-12 w-12 text-gray-400">
+          <div className="text-center py-16">
+            <div className="mx-auto h-16 w-16 text-gray-400 mb-4">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No forms</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating your first form.</p>
-            <div className="mt-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to FormHub!</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Create your first form to start collecting submissions. You can configure email targets, 
+              custom messages, and more advanced features.
+            </p>
+            <div className="space-y-4">
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
-                Create your first form
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Create Your First Form
               </button>
+              
+              <div className="text-sm text-gray-500">
+                <p>✨ No default forms - start fresh with your own configuration</p>
+              </div>
             </div>
           </div>
         ) : (
@@ -381,34 +440,77 @@ export default function FormsPage() {
             <ul className="divide-y divide-gray-200">
               {forms.map((form) => (
                 <li key={form.id}>
-                  <div className="px-4 py-4 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-blue-600 truncate">
+                  <div className="px-6 py-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center">
+                          <h3 className="text-lg font-medium text-gray-900 truncate">
                             {form.name}
+                          </h3>
+                          <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            form.is_active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {form.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        
+                        <div className="mt-2 space-y-1">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Target Email:</span> {form.target_email}
                           </p>
-                          <p className="text-sm text-gray-500">
-                            Target: {form.target_email}
-                          </p>
+                          
+                          {form.cc_emails && form.cc_emails.length > 0 && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">CC:</span> {form.cc_emails.join(', ')}
+                            </p>
+                          )}
+                          
+                          {form.subject && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">Subject:</span> {form.subject}
+                            </p>
+                          )}
+                          
                           {form.description && (
-                            <p className="text-sm text-gray-400 mt-1">
+                            <p className="text-sm text-gray-500 mt-2">
                               {form.description}
                             </p>
                           )}
+                          
+                          <div className="flex items-center text-xs text-gray-400 mt-3">
+                            <span>Created: {new Date(form.created_at).toLocaleDateString()}</span>
+                            {form.updated_at !== form.created_at && (
+                              <span className="ml-4">
+                                Updated: {new Date(form.updated_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={() => toggleFormStatus(form.id, form.is_active)}
-                            className={`px-3 py-1 text-xs rounded-full ${
-                              form.is_active
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                : 'bg-red-100 text-red-800 hover:bg-red-200'
-                            }`}
-                          >
-                            {form.is_active ? 'Active' : 'Inactive'}
-                          </button>
-                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          onClick={() => toggleFormStatus(form.id, form.is_active)}
+                          className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                            form.is_active
+                              ? 'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200'
+                              : 'text-green-700 bg-green-50 hover:bg-green-100 border border-green-200'
+                          }`}
+                        >
+                          {form.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        
+                        <button
+                          onClick={() => deleteForm(form.id, form.name)}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>
