@@ -1,6 +1,44 @@
+'use client'
+
+import React from 'react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function HomePage() {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitResult, setSubmitResult] = useState(null)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitResult(null)
+
+    try {
+      const response = await fetch('https://formhub.mejona.in/api/v1/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_key: 'test-key-123',
+          ...formData
+        })
+      })
+
+      const result = await response.json()
+      setSubmitResult(result)
+      
+      if (result.success) {
+        setFormData({ name: '', email: '', message: '' })
+      }
+    } catch (error) {
+      setSubmitResult({ success: false, message: 'Network error: ' + error.message })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -121,9 +159,10 @@ export default function HomePage() {
               </div>
               <div className="mt-6 p-4 bg-green-100 rounded-lg">
                 <p className="text-green-800 text-sm">
-                  <strong>API Endpoint:</strong> http://13.127.59.135:9000/api/v1<br/>
+                  <strong>HTTPS API Endpoint:</strong> https://formhub.mejona.in/api/v1<br/>
                   <strong>Test API Key:</strong> test-key-123<br/>
-                  <strong>Status:</strong> Ready for form submissions
+                  <strong>SSL Status:</strong> Secured with Let's Encrypt certificate<br/>
+                  <strong>Status:</strong> Ready for secure form submissions
                 </p>
               </div>
             </div>
@@ -159,13 +198,92 @@ export default function HomePage() {
               </div>
               
               <div className="bg-gray-900 text-green-400 px-6 py-4 rounded-md text-sm font-mono overflow-x-auto mb-4">
-                curl -X POST http://13.127.59.135:9000/api/v1/submit -d "access_key=test-key-123&name=Test&email=test@example.com&message=Hello"
+                curl -X POST https://formhub.mejona.in/api/v1/submit -H "Content-Type: application/json" -d '{"access_key": "test-key-123", "name": "Test User", "email": "test@example.com", "message": "Hello FormHub!"}'
               </div>
               <p className="text-green-700 text-sm">
-                ✅ <strong>Backend Status:</strong> Production-ready and processing requests successfully.
+                ✅ <strong>Backend Status:</strong> Production-ready with HTTPS SSL certificate.
                 <br/>
-                🔒 <strong>HTTPS Note:</strong> GitHub Pages requires HTTPS for API calls. For full frontend integration, deploy with SSL certificate.
+                🔒 <strong>HTTPS Enabled:</strong> Secure API endpoint ready for GitHub Pages integration.
               </p>
+            </div>
+          </div>
+
+          <div className="mt-16">
+            <div className="bg-blue-50 border border-blue-300 p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+              <h3 className="text-2xl font-semibold text-blue-900 mb-6">🚀 Try Live HTTPS Demo</h3>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-800 mb-2">Name</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Your name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-blue-800 mb-2">Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-blue-800 mb-2">Message</label>
+                  <textarea 
+                    required
+                    rows={3}
+                    value={formData.message}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your message..."
+                  />
+                </div>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium disabled:bg-blue-400"
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Live Demo'}
+                </button>
+              </form>
+              
+              {submitResult && (
+                <div className={`mt-4 p-4 rounded-lg ${
+                  submitResult.success 
+                    ? 'bg-green-100 border border-green-300 text-green-800' 
+                    : 'bg-red-100 border border-red-300 text-red-800'
+                }`}>
+                  <div className="font-medium">
+                    {submitResult.success ? '✅ Success!' : '❌ Error'}
+                  </div>
+                  <div className="text-sm mt-1">{submitResult.message}</div>
+                  {submitResult.success && submitResult.data && (
+                    <div className="text-xs mt-2 font-mono bg-white p-2 rounded border">
+                      Response: {JSON.stringify(submitResult.data, null, 2)}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="mt-6 p-4 bg-blue-100 rounded-lg">
+                <p className="text-blue-800 text-sm">
+                  <strong>✅ Live Integration:</strong> This form connects directly to 
+                  <code className="bg-blue-200 px-1 rounded mx-1">https://formhub.mejona.in/api/v1/submit</code>
+                </p>
+                <p className="text-blue-700 text-xs mt-2">
+                  🔒 HTTPS enabled • CORS configured • SSL certificate active
+                </p>
+              </div>
             </div>
           </div>
           
