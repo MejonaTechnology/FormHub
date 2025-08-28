@@ -186,7 +186,7 @@ export default function FormsPage() {
                     required
                     value={newForm.name}
                     onChange={(e) => setNewForm({...newForm, name: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="e.g., Contact Form"
                   />
                 </div>
@@ -200,7 +200,7 @@ export default function FormsPage() {
                     value={newForm.description}
                     onChange={(e) => setNewForm({...newForm, description: e.target.value})}
                     rows={3}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Description of your form"
                   />
                 </div>
@@ -215,7 +215,7 @@ export default function FormsPage() {
                     required
                     value={newForm.target_email}
                     onChange={(e) => setNewForm({...newForm, target_email: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="your-email@example.com"
                   />
                   <p className="mt-1 text-sm text-gray-500">
@@ -232,7 +232,7 @@ export default function FormsPage() {
                     id="cc_emails"
                     value={newForm.cc_emails}
                     onChange={(e) => setNewForm({...newForm, cc_emails: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="email1@example.com, email2@example.com"
                   />
                   <p className="mt-1 text-sm text-gray-500">
@@ -249,7 +249,7 @@ export default function FormsPage() {
                     id="subject"
                     value={newForm.subject}
                     onChange={(e) => setNewForm({...newForm, subject: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
@@ -262,7 +262,7 @@ export default function FormsPage() {
                     id="success_message"
                     value={newForm.success_message}
                     onChange={(e) => setNewForm({...newForm, success_message: e.target.value})}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 

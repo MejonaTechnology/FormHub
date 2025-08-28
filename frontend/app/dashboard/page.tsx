@@ -95,8 +95,21 @@ export default function DashboardPage() {
         headers,
       })
       if (formsResponse.ok) {
-        const formsData = await formsResponse.json()
-        setForms(formsData.forms || [])
+        const data = await formsResponse.json()
+        console.log('Dashboard Forms Response:', data)
+        // Handle different API response formats
+        const formsData = data.forms || []
+        const forms = Array.isArray(formsData) ? formsData.map(form => ({
+          ...form,
+          // Map API response fields to component interface
+          targetEmail: form.target_email || form.targetEmail,
+          isActive: form.is_active !== undefined ? form.is_active : form.isActive,
+          submissionCount: form.submission_count || form.submissionCount || 0
+        })) : []
+        console.log('Dashboard Processed Forms:', forms)
+        setForms(forms)
+      } else {
+        console.error('Dashboard Forms fetch failed:', formsResponse.status, formsResponse.statusText)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
