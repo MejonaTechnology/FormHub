@@ -38,7 +38,7 @@ export default function FormsPage() {
 
   const fetchForms = async () => {
     try {
-      const token = localStorage.getItem('access_token')
+      const token = localStorage.getItem('formhub_token')
       if (!token) {
         router.push('/auth/login')
         return
@@ -54,9 +54,10 @@ export default function FormsPage() {
 
       if (response.ok) {
         const data = await response.json()
+        console.log('Forms API Response:', data)
         setForms(data.forms || [])
       } else if (response.status === 401) {
-        localStorage.removeItem('access_token')
+        localStorage.removeItem('formhub_token')
         router.push('/auth/login')
       }
     } catch (error) {
@@ -70,7 +71,7 @@ export default function FormsPage() {
     e.preventDefault()
     
     try {
-      const token = localStorage.getItem('access_token')
+      const token = localStorage.getItem('formhub_token')
       if (!token) {
         router.push('/auth/login')
         return
@@ -116,7 +117,7 @@ export default function FormsPage() {
 
   const toggleFormStatus = async (formId: string, isActive: boolean) => {
     try {
-      const token = localStorage.getItem('access_token')
+      const token = localStorage.getItem('formhub_token')
       if (!token) return
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
