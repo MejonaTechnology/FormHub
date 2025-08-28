@@ -1,4 +1,3 @@
-import React from 'react'
 import Link from 'next/link'
 
 export default function HomePage() {
@@ -49,133 +48,146 @@ export default function HomePage() {
             </div>
             
             <div className="bg-green-50 border border-green-200 p-8 rounded-lg shadow-lg">
-              <h2 className="text-2xl font-semibold text-green-900 mb-4">Features</h2>
-              <ul className="text-green-800 space-y-3">
-                <li className="flex items-center">
-                  <span className="text-green-600 font-bold mr-3 text-lg">✓</span>
-                  Email notifications
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-600 font-bold mr-3 text-lg">✓</span>
-                  Spam protection
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-600 font-bold mr-3 text-lg">✓</span>
-                  File uploads
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-600 font-bold mr-3 text-lg">✓</span>
-                  Webhook integration
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-600 font-bold mr-3 text-lg">✓</span>
-                  Rate limiting
-                </li>
-                <li className="flex items-center">
-                  <span className="text-green-600 font-bold mr-3 text-lg">✓</span>
-                  RESTful API
-                </li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-16">
-            <div className="bg-gray-50 border border-gray-300 p-8 rounded-lg shadow-lg max-w-2xl mx-auto">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6">API Status</h3>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-gray-800 font-medium">API Server: Online</span>
+              <h2 className="text-2xl font-semibold text-green-900 mb-4">For Businesses</h2>
+              <p className="text-green-800 mb-6">
+                Manage form submissions with our intuitive dashboard. Get notified instantly.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center text-green-700">
+                  <div className="w-2 h-2 bg-green-600 rounded-full mr-3"></div>
+                  Real-time notifications
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-gray-800 font-medium">Database: Connected</span>
+                <div className="flex items-center text-green-700">
+                  <div className="w-2 h-2 bg-green-600 rounded-full mr-3"></div>
+                  Spam protection built-in
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-gray-800 font-medium">Email: Ready</span>
+                <div className="flex items-center text-green-700">
+                  <div className="w-2 h-2 bg-green-600 rounded-full mr-3"></div>
+                  Export to CSV/Excel
                 </div>
               </div>
             </div>
           </div>
-          
-          <div className="mt-16">
-            <div className="bg-green-50 border border-green-300 p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-              <h3 className="text-2xl font-semibold text-green-900 mb-4">✅ Backend API Status</h3>
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-green-800 font-medium">Go Backend: Running on AWS EC2</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-green-800 font-medium">Database: MariaDB Connected</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-green-800 font-medium">Redis Cache: Active</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mr-4"></div>
-                  <span className="text-green-800 font-medium">Form Submissions: Working</span>
-                </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-900 text-white py-16">
+        <div className="container mx-auto px-6">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold mb-8">Ready to Get Started?</h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              Join thousands of developers who trust FormHub for their form handling needs.
+            </p>
+            <div className="flex justify-center space-x-4">
+              <Link href="/auth/register" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors">
+                Start Free Trial
+              </Link>
+              <Link href="/docs" className="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors">
+                View Documentation
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-16 grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold">1</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Create Account</h3>
+              <p className="text-gray-400">Sign up for your free FormHub account in seconds.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold">2</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Get API Key</h3>
+              <p className="text-gray-400">Generate your unique API key from the dashboard.</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold">3</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Add to Forms</h3>
+              <p className="text-gray-400">Point your HTML forms to our endpoint and you're done!</p>
+            </div>
+          </div>
+
+          <div className="mt-16 text-center">
+            <div className="bg-gray-800 rounded-lg p-8 max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold mb-6">Live API Endpoint</h3>
+              <p className="text-gray-300 mb-4">
+                Our backend is currently running and ready to handle your form submissions.
+              </p>
+              
+              <div className="bg-gray-900 text-green-400 px-6 py-4 rounded-md text-sm font-mono overflow-x-auto mb-4">
+                curl -X POST https://formhub.mejona.in/api/v1/submit -H "Content-Type: application/json" -d {JSON.stringify({"access_key": "test-key-123", "name": "Test User", "email": "test@example.com", "message": "Hello FormHub!"})}
               </div>
               <div className="mt-6 p-4 bg-green-100 rounded-lg">
                 <p className="text-green-800 text-sm">
                   <strong>HTTPS API:</strong> https://formhub.mejona.in/api/v1<br/>
                   <strong>Test API Key:</strong> test-key-123<br/>
-                  <strong>SSL Status:</strong> Let's Encrypt Certificate<br/>
+                  <strong>SSL Status:</strong> Let&apos;s Encrypt Certificate<br/>
                   <strong>Status:</strong> Ready for secure form submissions
                 </p>
               </div>
             </div>
           </div>
-          
-          <div className="mt-16">
-            <div className="bg-green-50 border border-green-300 p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-              <h3 className="text-2xl font-semibold text-green-900 mb-4">✅ Backend Integration Ready</h3>
-              <p className="text-green-800 mb-6">
-                FormHub backend is deployed and fully operational on AWS EC2. All API endpoints tested and working perfectly.
-                The system is ready for production integration with proper HTTPS configuration.
+        </div>
+      </div>
+
+      <footer className="bg-white py-12">
+        <div className="container mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-bold text-blue-600 mb-4">FormHub</h3>
+              <p className="text-gray-600 mb-4">
+                Professional form backend service for modern web applications.
               </p>
-              
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-900 mb-2">✅ Working Endpoints</h4>
-                  <ul className="text-green-700 text-sm space-y-1">
-                    <li>• Form Submission API</li>
-                    <li>• User Authentication</li>
-                    <li>• Form Management</li>
-                    <li>• API Key Management</li>
-                  </ul>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-900 mb-2">🔧 System Status</h4>
-                  <ul className="text-green-700 text-sm space-y-1">
-                    <li>• AWS EC2: Online</li>
-                    <li>• MariaDB: Connected</li>
-                    <li>• Redis Cache: Active</li>
-                    <li>• CI/CD: Passing</li>
-                  </ul>
-                </div>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-blue-600">Twitter</a>
+                <a href="#" className="text-gray-400 hover:text-blue-600">GitHub</a>
+                <a href="#" className="text-gray-400 hover:text-blue-600">LinkedIn</a>
               </div>
-              
-              <div className="bg-gray-900 text-green-400 px-6 py-4 rounded-md text-sm font-mono overflow-x-auto mb-4">
-                curl -X POST https://formhub.mejona.in/api/v1/submit -H "Content-Type: application/json" -d '{"access_key": "test-key-123", "name": "Test User", "email": "test@example.com", "message": "Hello FormHub!"}'
-              </div>
-              <p className="text-green-700 text-sm">
-                ✅ <strong>Backend Status:</strong> Production-ready with HTTPS SSL certificate.
-                <br/>
-                🔒 <strong>HTTPS Enabled:</strong> Secure API endpoint ready for GitHub Pages integration.
-              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Product</h4>
+              <ul className="space-y-2">
+                <li><Link href="/pricing" className="text-gray-600 hover:text-blue-600">Pricing</Link></li>
+                <li><Link href="/docs" className="text-gray-600 hover:text-blue-600">Documentation</Link></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">API Reference</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Status</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">About</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Blog</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Careers</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Support</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Help Center</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Community</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Privacy Policy</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-blue-600">Terms of Service</a></li>
+              </ul>
             </div>
           </div>
           
-          <footer className="mt-16 text-center bg-gray-800 py-8 rounded-lg">
-            <p className="text-gray-200 text-lg">© 2025 FormHub by <span className="text-blue-400 font-semibold">Mejona Technology LLP</span>. All rights reserved.</p>
-          </footer>
+          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
+            <p className="text-gray-600">
+              © 2024 FormHub by Mejona Technology. All rights reserved.
+            </p>
+          </div>
         </div>
-      </div>
+      </footer>
     </div>
   )
 }
