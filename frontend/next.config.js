@@ -12,7 +12,7 @@ const nextConfig = {
   assetPrefix: process.env.NODE_ENV === 'production' ? '/FormHub/' : '',
   // Environment variables
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://13.127.59.135:9000/api/v1',
     NEXT_PUBLIC_BASE_PATH: process.env.NODE_ENV === 'production' ? '/FormHub' : '',
   },
   // Ensure proper page extensions

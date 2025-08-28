@@ -37,7 +37,7 @@ export default function HomePage() {
                 Easy-to-use API endpoints for form handling. No server-side code required.
               </p>
               <div className="bg-gray-800 text-green-400 p-4 rounded-md text-sm font-mono">
-                &lt;form action="http://13.127.59.135:9000/api/v1/submit" method="POST"&gt;
+                &lt;form action="https://formhub.mejona.in/api/v1/submit" method="POST"&gt;
                 <br />
                 &nbsp;&nbsp;&lt;input name="name" placeholder="Name" required&gt;
                 <br />
@@ -121,9 +121,10 @@ export default function HomePage() {
               </div>
               <div className="mt-6 p-4 bg-green-100 rounded-lg">
                 <p className="text-green-800 text-sm">
-                  <strong>API Endpoint:</strong> http://13.127.59.135:9000/api/v1<br/>
+                  <strong>HTTPS API:</strong> https://formhub.mejona.in/api/v1<br/>
                   <strong>Test API Key:</strong> test-key-123<br/>
-                  <strong>Status:</strong> Ready for form submissions
+                  <strong>SSL Status:</strong> Let's Encrypt Certificate<br/>
+                  <strong>Status:</strong> Ready for secure form submissions
                 </p>
               </div>
             </div>
@@ -159,12 +160,12 @@ export default function HomePage() {
               </div>
               
               <div className="bg-gray-900 text-green-400 px-6 py-4 rounded-md text-sm font-mono overflow-x-auto mb-4">
-                curl -X POST http://13.127.59.135:9000/api/v1/submit -d "access_key=test-key-123&name=Test&email=test@example.com&message=Hello"
+                curl -X POST https://formhub.mejona.in/api/v1/submit -H "Content-Type: application/json" -d '{"access_key": "test-key-123", "name": "Test User", "email": "test@example.com", "message": "Hello FormHub!"}'
               </div>
               <p className="text-green-700 text-sm">
-                ✅ <strong>Backend Status:</strong> Production-ready and processing requests successfully.
+                ✅ <strong>Backend Status:</strong> Production-ready with HTTPS SSL certificate.
                 <br/>
-                🔒 <strong>HTTPS Note:</strong> GitHub Pages requires HTTPS for API calls. For full frontend integration, deploy with SSL certificate.
+                🔒 <strong>HTTPS Enabled:</strong> Secure API endpoint ready for GitHub Pages integration.
               </p>
             </div>
           </div>
