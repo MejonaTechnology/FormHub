@@ -33,6 +33,7 @@ export default function FormsPage() {
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
   const [newForm, setNewForm] = useState({
     name: '',
     description: '',
@@ -67,6 +68,7 @@ export default function FormsPage() {
         return
       }
 
+      setApiError(null) // Clear any previous errors
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1'
       const response = await fetch(`${apiUrl}/forms`, {
         headers: {
@@ -82,9 +84,24 @@ export default function FormsPage() {
       } else if (response.status === 401) {
         localStorage.removeItem('formhub_token')
         router.push('/auth/login')
+      } else if (response.status === 503) {
+        setApiError('FormHub API service is temporarily unavailable. Please try again later.')
+        setForms([])
+      } else {
+        console.error('Forms API error:', response.status, response.statusText)
+        setApiError(`API error: ${response.status} ${response.statusText}`)
+        setForms([])
       }
     } catch (error) {
       console.error('Error fetching forms:', error)
+      // Handle CORS/network errors gracefully
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setApiError('Unable to connect to FormHub API. This may be due to server maintenance or network issues.')
+        console.warn('API server unavailable or CORS issue - showing offline state')
+      } else {
+        setApiError('An unexpected error occurred while loading forms.')
+      }
+      setForms([])
     } finally {
       setLoading(false)
     }
@@ -406,8 +423,38 @@ export default function FormsPage() {
           </div>
         )}
 
+        {/* API Error Display */}
+        {apiError && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">API Connection Issue</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{apiError}</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={() => fetchForms()}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Retry
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Forms List */}
-        {forms.length === 0 ? (
+        {forms.length === 0 && !apiError ? (
           <div className="text-center py-16">
             <div className="mx-auto h-16 w-16 text-gray-400 mb-4">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,7 +469,8 @@ export default function FormsPage() {
             <div className="space-y-4">
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                disabled={!!apiError}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -434,6 +482,18 @@ export default function FormsPage() {
                 <p>✨ No default forms - start fresh with your own configuration</p>
               </div>
             </div>
+          </div>
+        ) : forms.length === 0 && apiError ? (
+          <div className="text-center py-16">
+            <div className="mx-auto h-16 w-16 text-gray-400 mb-4">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to Load Forms</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              We're having trouble connecting to the FormHub API. Please check your internet connection and try again.
+            </p>
           </div>
         ) : (
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
