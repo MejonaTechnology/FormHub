@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setError('')
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://13.127.59.135:9000/api/v1';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://formhub.mejona.in/api/v1';
       const response = await fetch(`${apiUrl}/auth/register`, {
         method: 'POST',
         headers: {
