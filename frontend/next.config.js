@@ -27,6 +27,10 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@heroicons/react', '@headlessui/react'],
   },
+  // Disable problematic RSC features for static export
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 }
 
 module.exports = nextConfig

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
@@ -36,14 +37,73 @@ func main() {
 		})
 	})
 
+	// Login endpoint for testing
+	r.POST("/api/v1/auth/login", func(c *gin.Context) {
+		var loginData map[string]interface{}
+		if err := c.ShouldBindJSON(&loginData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error": "Invalid JSON format",
+			})
+			return
+		}
+
+		email, _ := loginData["email"].(string)
+		password, _ := loginData["password"].(string)
+
+		// Simple test credentials check
+		if email == "testuser@example.com" && password == "testpass123" {
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"access_token": "test-token-" + generateID(),
+				"user": gin.H{
+					"id": "user-1",
+					"email": email,
+					"first_name": "Test",
+					"last_name": "User",
+					"plan_type": "free",
+				},
+			})
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error": "Invalid credentials",
+			})
+		}
+	})
+
+	// Registration endpoint for testing
+	r.POST("/api/v1/auth/register", func(c *gin.Context) {
+		var regData map[string]interface{}
+		if err := c.ShouldBindJSON(&regData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error": "Invalid JSON format",
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"success": true,
+			"access_token": "test-token-" + generateID(),
+			"user": gin.H{
+				"id": "user-" + generateID(),
+				"email": regData["email"],
+				"first_name": regData["first_name"],
+				"last_name": regData["last_name"],
+				"plan_type": "free",
+			},
+		})
+	})
+
 	// Forms management endpoint
 	r.GET("/api/v1/forms", func(c *gin.Context) {
 		// Check for authorization header
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		if authHeader == "" || !strings.Contains(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"error": "Authorization header required",
+				"error": "Valid authorization required",
 			})
 			return
 		}
@@ -69,10 +129,10 @@ func main() {
 	r.GET("/api/v1/api-keys", func(c *gin.Context) {
 		// Check for authorization header
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		if authHeader == "" || !strings.Contains(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"error": "Authorization header required",
+				"error": "Valid authorization required",
 			})
 			return
 		}
@@ -97,10 +157,10 @@ func main() {
 	r.POST("/api/v1/forms", func(c *gin.Context) {
 		// Check for authorization header
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		if authHeader == "" || !strings.Contains(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"error": "Authorization header required",
+				"error": "Valid authorization required",
 			})
 			return
 		}
@@ -133,10 +193,10 @@ func main() {
 	r.DELETE("/api/v1/forms/:id", func(c *gin.Context) {
 		// Check for authorization header
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		if authHeader == "" || !strings.Contains(authHeader, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
-				"error": "Authorization header required",
+				"error": "Valid authorization required",
 			})
 			return
 		}
