@@ -87,7 +87,10 @@ export default function FormsPage() {
         setApiError('FormHub API service is temporarily unavailable. Please try again later.')
         setForms([])
       } else {
-        console.error('Forms API error:', response.status, response.statusText)
+        // Reduce console error spam during backend deployment
+        if (!apiError) {
+          console.warn('Forms API temporarily unavailable:', response.status, 'Backend is deploying...')
+        }
         setApiError(`API error: ${response.status} ${response.statusText}`)
         setForms([])
       }
@@ -95,8 +98,8 @@ export default function FormsPage() {
       console.error('Error fetching forms:', error)
       // Handle CORS/network errors gracefully
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        setApiError('Unable to connect to FormHub API. This may be due to server maintenance or network issues.')
-        console.warn('API server unavailable or CORS issue - showing offline state')
+        setApiError('🚀 FormHub backend is deploying with new enterprise features! Please refresh in a few minutes.')
+        console.warn('API server deploying - showing temporary offline state')
       } else {
         setApiError('An unexpected error occurred while loading forms.')
       }
@@ -446,6 +449,10 @@ export default function FormsPage() {
                 <h3 className="text-sm font-medium text-red-800">API Connection Issue</h3>
                 <div className="mt-2 text-sm text-red-700">
                   <p>{apiError}</p>
+                  <p className="mt-2 text-sm text-blue-600">
+                    ✨ <strong>Good news:</strong> You can still use the <strong>Form Builder</strong> offline! 
+                    The visual form designer works independently of the backend.
+                  </p>
                 </div>
                 <div className="mt-4">
                   <button
@@ -480,8 +487,7 @@ export default function FormsPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <button
                   onClick={() => setShowCreateForm(true)}
-                  disabled={!!apiError}
-                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -491,7 +497,7 @@ export default function FormsPage() {
                 
                 <Link
                   href="/dashboard/forms/builder"
-                  className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors ${apiError ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
