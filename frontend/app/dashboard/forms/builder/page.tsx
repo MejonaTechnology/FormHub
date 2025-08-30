@@ -238,8 +238,10 @@ function FormBuilderContent() {
     // Store preview data in sessionStorage for the preview window
     sessionStorage.setItem('form_preview', JSON.stringify(previewData));
     
-    // Open preview window
-    const previewWindow = window.open('/form-preview', '_blank', 'width=800,height=600');
+    // Open preview window with correct base path for GitHub Pages
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    const previewUrl = `${basePath}/form-preview`;
+    const previewWindow = window.open(previewUrl, '_blank', 'width=800,height=600');
     if (!previewWindow) {
       toast.error('Please allow popups to open preview window');
     }
