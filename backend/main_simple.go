@@ -36,6 +36,63 @@ func main() {
 		})
 	})
 
+	// Forms management endpoint
+	r.GET("/api/v1/forms", func(c *gin.Context) {
+		// Check for authorization header
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error": "Authorization header required",
+			})
+			return
+		}
+
+		// Simple response - in production this would fetch from database
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"forms": []gin.H{
+				{
+					"id": "example-form-1",
+					"name": "Contact Form",
+					"description": "Basic contact form",
+					"target_email": "contact@example.com",
+					"is_active": true,
+					"submission_count": 5,
+					"created_at": "2025-08-30T08:00:00Z",
+				},
+			},
+		})
+	})
+
+	// API Keys endpoint
+	r.GET("/api/v1/api-keys", func(c *gin.Context) {
+		// Check for authorization header
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error": "Authorization header required",
+			})
+			return
+		}
+
+		// Simple response - in production this would fetch from database
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"api_keys": []gin.H{
+				{
+					"id": "key-1",
+					"name": "Default API Key",
+					"permissions": "form_submit",
+					"rate_limit": 1000,
+					"is_active": true,
+					"created_at": "2025-08-30T08:00:00Z",
+				},
+			},
+		})
+	})
+
 	// Form submission endpoint
 	r.POST("/api/v1/submit", func(c *gin.Context) {
 		var submission map[string]interface{}
