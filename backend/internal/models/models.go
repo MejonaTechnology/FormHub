@@ -557,15 +557,7 @@ type EmailABTest struct {
 	UpdatedAt     time.Time  `json:"updated_at" db:"updated_at"`
 }
 
-// ABTestStatus represents the status of an A/B test
-type ABTestStatus string
-
-const (
-	ABTestStatusDraft   ABTestStatus = "draft"
-	ABTestStatusActive  ABTestStatus = "active"
-	ABTestStatusPaused  ABTestStatus = "paused"
-	ABTestStatusEnded   ABTestStatus = "ended"
-)
+// Removed duplicate ABTestStatus - now defined in analytics_models.go
 
 // EmailTemplateCategory for organizing templates
 type EmailTemplateCategory struct {

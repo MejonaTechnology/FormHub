@@ -35,7 +35,7 @@ jobs:
         cd backend
         go mod download
         go mod verify
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main.go
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main_simple.go
         ls -la ${{ env.SERVICE_NAME }}
         echo "Build completed successfully"
 
@@ -94,7 +94,7 @@ jobs:
       run: |
         cd backend
         go mod download
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main.go
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} main_simple.go
         chmod +x ${{ env.SERVICE_NAME }}
     - name: Prepare Frontend Files
       run: |

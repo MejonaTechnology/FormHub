@@ -6,24 +6,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"formhub/internal/models"
-	"formhub/pkg/database"
 	"log"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type AnalyticsService struct {
 	db    *sqlx.DB
-	redis *database.RedisClient
+	redis *redis.Client
 }
 
-func NewAnalyticsService(db *sqlx.DB, redis *database.RedisClient) *AnalyticsService {
+func NewAnalyticsService(db *sqlx.DB, redis *redis.Client) *AnalyticsService {
 	return &AnalyticsService{
 		db:    db,
 		redis: redis,
