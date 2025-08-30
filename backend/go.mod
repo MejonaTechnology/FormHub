@@ -14,6 +14,14 @@ require (
 	github.com/redis/go-redis/v9 v9.4.0
 	golang.org/x/crypto v0.18.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
+	google.golang.org/api v0.163.0
+	github.com/slack-go/slack v0.12.3
+	github.com/notion-go/notion-go v0.1.0
+	gopkg.in/yaml.v3 v3.0.1
+	github.com/gorilla/websocket v1.5.1
+	golang.org/x/oauth2 v0.17.0
+	github.com/robfig/cron/v3 v3.0.1
+	golang.org/x/net v0.20.0
 )
 
 require (

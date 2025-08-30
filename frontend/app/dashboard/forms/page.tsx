@@ -285,12 +285,23 @@ export default function FormsPage() {
                 Manage your forms and configure email recipients for submissions.
               </p>
             </div>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Create New Form
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Quick Create
+              </button>
+              <Link
+                href="/dashboard/forms/builder"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Build New Form
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -466,16 +477,28 @@ export default function FormsPage() {
               custom messages, and more advanced features.
             </p>
             <div className="space-y-4">
-              <button
-                onClick={() => setShowCreateForm(true)}
-                disabled={!!apiError}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Create Your First Form
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  disabled={!!apiError}
+                  className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Quick Create
+                </button>
+                
+                <Link
+                  href="/dashboard/forms/builder"
+                  className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors ${apiError ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Build Your First Form
+                </Link>
+              </div>
               
               <div className="text-sm text-gray-500">
                 <p>✨ No default forms - start fresh with your own configuration</p>
@@ -555,6 +578,16 @@ export default function FormsPage() {
                       </div>
                       
                       <div className="flex items-center space-x-2 ml-4">
+                        <Link
+                          href={`/dashboard/forms/builder?id=${form.id}`}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </Link>
+
                         <button
                           onClick={() => toggleFormStatus(form.id, form.is_active)}
                           className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
