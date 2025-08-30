@@ -93,6 +93,70 @@ func main() {
 		})
 	})
 
+	// Form creation endpoint
+	r.POST("/api/v1/forms", func(c *gin.Context) {
+		// Check for authorization header
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error": "Authorization header required",
+			})
+			return
+		}
+
+		var formData map[string]interface{}
+		if err := c.ShouldBindJSON(&formData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error": "Invalid JSON format",
+			})
+			return
+		}
+
+		// Simple response - in production this would save to database
+		c.JSON(http.StatusCreated, gin.H{
+			"success": true,
+			"form": gin.H{
+				"id": "form-" + generateID(),
+				"name": formData["name"],
+				"description": formData["description"],
+				"target_email": formData["target_email"],
+				"is_active": true,
+				"submission_count": 0,
+				"created_at": "2025-08-30T13:00:00Z",
+			},
+		})
+	})
+
+	// Form deletion endpoint
+	r.DELETE("/api/v1/forms/:id", func(c *gin.Context) {
+		// Check for authorization header
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success": false,
+				"error": "Authorization header required",
+			})
+			return
+		}
+
+		formId := c.Param("id")
+		if formId == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error": "Form ID is required",
+			})
+			return
+		}
+
+		// Simple response - in production this would delete from database
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Form deleted successfully",
+		})
+	})
+
 	// Form submission endpoint
 	r.POST("/api/v1/submit", func(c *gin.Context) {
 		var submission map[string]interface{}
